@@ -211,11 +211,12 @@ namespace AthensDependencyCheck
                         {
                             var dllType = (DllType)Convert.ToInt32(dataReader["D_VERSION"]);
 
-                            if (IsValidAthensDll(dllType, isUAP))
+                            if (!IsValidAthensDll(dllType, isUAP))
                             {
                                 isValidDll = false;
                                 invalidDllCount++;
                             }
+
                             Console.Out.WriteLine(string.Format(dllOutput, dllName, isValidDll));
                         }
                         else
@@ -323,7 +324,7 @@ namespace AthensDependencyCheck
 
         private static bool IsValidAthensDll(DllType dllType, bool isUAP)
         {
-            return (dllType != DllType.WindowsAthens || (isUAP && dllType != DllType.WindowsAthensUAP) || (!isUAP && dllType != DllType.WindowsAthensNonUAP));
+            return (dllType == DllType.WindowsAthens || (isUAP && dllType == DllType.WindowsAthensUAP) || (!isUAP && dllType == DllType.WindowsAthensNonUAP));
         }
 
         private static void InvalidUsage()
