@@ -162,9 +162,9 @@ namespace AthensDependencyCheck
             var functionDLLJoin = "SELECT * FROM FUNCTION, DLL WHERE F_NAME = '{0}' AND D_NAME = F_DLL_NAME";
 
             // Output formatting
-            var dllOutput = "{0}\t\tInAthens={1}";
-            var functionOutput = "\t{0}\t\tInAthens={1}";
-            var alternateDllFunctionOutput = "\t{0}\t\tInAthens={1}\t\tFound in {2} instead";
+            var csvOutputDllNotExistFormat = "{0},{1}\n";
+            var csvOutputFunctionSameDllFormat = "{0},{1},{2}\n";
+            var csvOutputFunctionAltDllFormat = "{0},{1},{2},{3}\n";
 
             // Counts for errors/warnings
             var invalidDllCount = 0;
@@ -180,6 +180,7 @@ namespace AthensDependencyCheck
                 {
                     // Start at line 10 to eliminate pre-import output
                     var index = 10;
+                    var csvOutput = new StringBuilder("DLL NAME, FUNCTION NAME, IN ATHENS, ALTERNATE DLL\n\n");
 
                     // Parse the dlls
                     while (true)
@@ -216,12 +217,10 @@ namespace AthensDependencyCheck
                                 isValidDll = false;
                                 invalidDllCount++;
                             }
-
-                            Console.Out.WriteLine(string.Format(dllOutput, dllName, isValidDll));
                         }
                         else
                         {
-                            Console.Out.WriteLine(dllName + ": Not recognized");
+                            csvOutput.AppendFormat(csvOutputDllNotExistFormat, dllName, "IGNORED");
                             notRecognizedDllCount++;
                         }
 
@@ -271,11 +270,10 @@ namespace AthensDependencyCheck
                                 if (!functionExists)
                                 {
                                     invalidFunctionCount++;
+                                    csvOutput.AppendFormat(csvOutputFunctionSameDllFormat, dllName, functionName, functionExists);
                                 }
 
                                 dataReader.Close();
-
-                                Console.Out.Write(string.Format(functionOutput, functionName, functionExists));
                             }
                             else
                             {
@@ -286,20 +284,22 @@ namespace AthensDependencyCheck
                                 // Ensure that the dll is UAP/Non-UAP compatible and that the function exists
                                 if (functionExists && IsValidAthensDll((DllType)dataReader["D_VERSION"], isUAP))
                                 {
-                                    Console.Out.WriteLine(alternateDllFunctionOutput, functionName, functionExists, dataReader["D_NAME"]);
+                                    csvOutput.AppendFormat(csvOutputFunctionAltDllFormat, dllName, functionName, functionExists, dataReader["D_NAME"]);
 
                                     differentDllFunctionCount++;
                                 }
                                 else
                                 {
                                     invalidFunctionCount++;
-                                    Console.Out.WriteLine(functionOutput, functionName, functionExists);
+                                    csvOutput.AppendFormat(csvOutputFunctionSameDllFormat, dllName, functionName, functionExists);
                                 }
 
                                 dataReader.Close();
                             }
                         }
                     }
+
+                    File.WriteAllText("result.csv", csvOutput.ToString());
                 }
             }
 
@@ -307,6 +307,7 @@ namespace AthensDependencyCheck
             Console.Out.WriteLine("\n\nSummary");
             Console.Out.WriteLine(invalidDllCount == 0 ? "All DLLs are compatible" : "Number of DLLs incompatible: " + invalidDllCount);
             Console.Out.WriteLine(invalidFunctionCount == 0 ? "All functions are comptible" : "Number of functions incompatible: " + invalidFunctionCount);
+
             if (differentDllFunctionCount > 0) {
                 Console.Out.WriteLine("Number of functions found in different DLLs: " + differentDllFunctionCount);
             }
@@ -344,11 +345,6 @@ namespace AthensDependencyCheck
             {
                 GenerateTables();
                 return;
-            }
-
-            if (!args[0].ToLower().EndsWith(".dll"))
-            {
-                InvalidUsage();
             }
 
             var isUAP = true;
