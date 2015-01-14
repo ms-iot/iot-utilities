@@ -11,7 +11,35 @@ namespace AthensDependencyCheck
 {
     class Program
     {
-        static void GenerateTables()
+        private enum DllType
+        {
+            Windows8 = 0,
+            WindowsCE = 1,
+            WindowsAthens = 2,
+            WindowsAthensUAP = 3,
+            WindowsAthensNonUAP = 4,
+        }
+
+        private static DllType StringToDllType(string type)
+        {
+            switch (type)
+            {
+                case "8":
+                    return DllType.Windows8;
+                case "CE":
+                    return DllType.WindowsCE;
+                case "Athens":
+                    return DllType.WindowsAthens;
+                case "UAP":
+                    return DllType.WindowsAthensUAP;
+                case "NonUAP":
+                    return DllType.WindowsAthensNonUAP;
+                default:
+                    throw new ArgumentException("Invalid DLL Type");
+            }
+        }
+
+        private static void GenerateTables()
         {
             var insertDll = "INSERT INTO DLL VALUES('{0}', {1});";
             var insertFunction = "INSERT INTO FUNCTION VALUES('{0}', '{1}');";
@@ -27,7 +55,7 @@ namespace AthensDependencyCheck
                     command.CommandText = @"CREATE TABLE IF NOT EXISTS DLL 
                                             (
                                                 D_NAME VARCHAR(255) NOT NULL PRIMARY KEY,
-                                                D_IS_UAP INTEGER NOT NULL CHECK(D_IS_UAP IN (0, 1))
+                                                D_VERSION INTEGER NOT NULL CHECK(D_VERSION IN (0, 4))
                                             );";
                     command.ExecuteNonQuery();
 
@@ -48,16 +76,26 @@ namespace AthensDependencyCheck
 
                     try
                     {
+                        using (var reader = new StreamReader("Win8DLLS.txt"))
+                        {
+                            while (!reader.EndOfStream)
+                            {
+                                var dllName = reader.ReadLine().ToLower().Trim();
+                                command.CommandText = string.Format(insertDll, dllName, Convert.ToInt32(DllType.Windows8));
+                                command.ExecuteNonQuery();
+                            }
+                        }
+
                         using (var reader = new StreamReader("dlls.txt"))
                         {
                             while (!reader.EndOfStream)
                             {
                                 // Get the DLL name and whether it is available in a UAP app
                                 var dllName = reader.ReadLine().ToLower().Trim();
-                                var isUAP = Convert.ToInt32(reader.ReadLine().Trim().Equals("UAP"));
+                                var dllType = StringToDllType(reader.ReadLine().Trim());
 
-                                command.CommandText = string.Format(insertDll, dllName, isUAP);
-                                command.ExecuteNonQuery();
+                                command.CommandText = string.Format(insertDll, dllName, dllType);
+                                command.ExecuteNonQueryAsync();
 
                                 // Get the functions for that DLL
                                 while (!reader.EndOfStream)
@@ -71,7 +109,7 @@ namespace AthensDependencyCheck
                                     }
 
                                     command.CommandText = string.Format(insertFunction, functionName, dllName);
-                                    command.ExecuteNonQuery();
+                                    command.ExecuteNonQueryAsync();
                                 }
                             }
                         }
@@ -85,7 +123,7 @@ namespace AthensDependencyCheck
             }
         }
 
-        static string[] GetDumpbinOutput(string dllName)
+        private static string[] GetDumpbinOutput(string dllName)
         {
             // Create a temporary file to store the dumpbin output
             var temp = Path.GetTempFileName();
@@ -115,10 +153,10 @@ namespace AthensDependencyCheck
             return output;
         }
 
-        static void ProcessLines(string[] lines, bool isUAP)
+        private static void ProcessLines(string[] lines, bool isUAP)
         {
             // Queries
-            var selectDll = "SELECT * FROM DLL WHERE D_NAME = '{0}' AND D_IS_UAP = {1};";
+            var selectDll = "SELECT * FROM DLL WHERE D_NAME = '{0}'";
             var functionSelect = "SELECT * FROM FUNCTION WHERE F_NAME = '{0}';";
             var functionSelectWithDll = functionSelect + "AND F_DLL_NAME = '{1}';";
             var functionDLLJoin = "SELECT * FROM FUNCTION, DLL WHERE F_NAME = '{0}' AND D_NAME = F_DLL_NAME";
@@ -132,6 +170,7 @@ namespace AthensDependencyCheck
             var invalidDllCount = 0;
             var invalidFunctionCount = 0;
             var differentDllFunctionCount = 0;
+            var notRecognizedDllCount = 0;
 
             using (var connection = new SQLiteConnection(@"data source=athensCheck.db3"))
             {
@@ -163,18 +202,29 @@ namespace AthensDependencyCheck
                         var dllName = currentLine;
 
                         // Try to get the dll from the db
-                        command.CommandText = string.Format(selectDll, dllName, Convert.ToInt32(isUAP));
+                        command.CommandText = string.Format(selectDll, dllName);
                         var dataReader = command.ExecuteReader();
-                        var dllExists = dataReader.Read();
+                        var isValidDll = true;
+                        var isRecognized = dataReader.Read();
 
-                        if (!dllExists)
+                        if (isRecognized)
                         {
-                            invalidDllCount++;
+                            var dllType = (DllType)Convert.ToInt32(dataReader["D_VERSION"]);
+
+                            if (IsValidAthensDll(dllType, isUAP))
+                            {
+                                isValidDll = false;
+                                invalidDllCount++;
+                            }
+                            Console.Out.WriteLine(string.Format(dllOutput, dllName, isValidDll));
+                        }
+                        else
+                        {
+                            Console.Out.WriteLine(dllName + ": Not recognized");
+                            notRecognizedDllCount++;
                         }
 
                         dataReader.Close();
-
-                        Console.Out.WriteLine(string.Format(dllOutput, dllName, dllExists));
 
                         // Loop through the preamble (of variable length)
                         while (!string.IsNullOrWhiteSpace(currentLine))
@@ -196,6 +246,11 @@ namespace AthensDependencyCheck
                                 break;
                             }
 
+                            if (!isRecognized)
+                            {
+                                continue;
+                            }
+
                             var tableComponents = currentLine.Split(' ');
 
                             if (tableComponents[0] == "Ordinal")
@@ -206,7 +261,7 @@ namespace AthensDependencyCheck
                             var functionName = tableComponents.Last();
 
                             // If the dll exists double check that the function exists, otherwise see if there is another dll that has it
-                            if (dllExists)
+                            if (isValidDll)
                             {
                                 command.CommandText = string.Format(functionSelectWithDll, functionName, dllName);
                                 dataReader = command.ExecuteReader();
@@ -228,7 +283,7 @@ namespace AthensDependencyCheck
                                 var functionExists = dataReader.Read();
 
                                 // Ensure that the dll is UAP/Non-UAP compatible and that the function exists
-                                if (functionExists && Convert.ToBoolean(dataReader["D_IS_UAP"]) == isUAP)
+                                if (functionExists && IsValidAthensDll((DllType)dataReader["D_VERSION"], isUAP))
                                 {
                                     Console.Out.WriteLine(alternateDllFunctionOutput, functionName, functionExists, dataReader["D_NAME"]);
 
@@ -255,13 +310,23 @@ namespace AthensDependencyCheck
                 Console.Out.WriteLine("Number of functions found in different DLLs: " + differentDllFunctionCount);
             }
 
+            if (notRecognizedDllCount > 0)
+            {
+                Console.Out.WriteLine("Number of unrecognized DLLs: " + notRecognizedDllCount);
+            }
+
             if (invalidDllCount + invalidFunctionCount + differentDllFunctionCount == 0)
             {
                 Console.Out.WriteLine("\n\nYour DLL is compatible with Windows Athens!");
             }
         }
 
-        static void InvalidUsage()
+        private static bool IsValidAthensDll(DllType dllType, bool isUAP)
+        {
+            return (dllType != DllType.WindowsAthens || (isUAP && dllType != DllType.WindowsAthensUAP) || (!isUAP && dllType != DllType.WindowsAthensNonUAP));
+        }
+
+        private static void InvalidUsage()
         {
             Console.Error.WriteLine("Usage: AthensDependencyCheck.exe (generate | [dllName].dll [-u])");
             Environment.Exit(1);

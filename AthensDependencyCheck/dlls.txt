@@ -1,0 +1,3 @@
+mscoree.dll
+UAP
+_CorDllMain
