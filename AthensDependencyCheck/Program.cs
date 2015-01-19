@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data.SQLite;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace AthensDependencyCheck
 {
@@ -20,9 +18,9 @@ namespace AthensDependencyCheck
             WindowsAthensNonUAP = 4,
         }
 
-        private static DllType StringToDllType(string type)
+        private static DllType StringToDllType(string dllType)
         {
-            switch (type)
+            switch (dllType)
             {
                 case "8":
                     return DllType.Windows8;
@@ -76,6 +74,7 @@ namespace AthensDependencyCheck
 
                     try
                     {
+                        // Read in the known Windows 8 dlls
                         using (var reader = new StreamReader("Win8DLLS.txt"))
                         {
                             while (!reader.EndOfStream)
@@ -86,6 +85,7 @@ namespace AthensDependencyCheck
                             }
                         }
 
+                        // Read in the Athens and other valid dlls
                         using (var reader = new StreamReader("dlls.txt"))
                         {
                             while (!reader.EndOfStream)
@@ -212,6 +212,7 @@ namespace AthensDependencyCheck
                         {
                             var dllType = (DllType)Convert.ToInt32(dataReader["D_VERSION"]);
 
+                            // Check if the dlls is in Athens
                             if (!IsValidAthensDll(dllType, isUAP))
                             {
                                 isValidDll = false;
@@ -341,6 +342,7 @@ namespace AthensDependencyCheck
                 InvalidUsage();
             }
 
+            // Assumption no input file name is just "generate" (Could be a bad one)
             if (args.Length == 1 && args[0].Equals("generate"))
             {
                 GenerateTables();
@@ -349,6 +351,7 @@ namespace AthensDependencyCheck
 
             var isUAP = true;
 
+            // Check for a Non-UAP flag
             if (args.Length == 2) {
                 if (!args[1].Equals("-u"))
                 {
