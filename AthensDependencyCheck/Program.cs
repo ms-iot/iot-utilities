@@ -304,7 +304,7 @@ namespace AthensDependencyCheck
             }
 
             // Summary output
-            Console.Out.WriteLine("\n\nSummary");
+            Console.Out.WriteLine(string.Format("{0}{1}Summary", Environment.NewLine, Environment.NewLine));
             Console.Out.WriteLine(invalidDllCount == 0 ? "All DLLs are compatible" : "Number of DLLs incompatible: " + invalidDllCount);
             Console.Out.WriteLine(invalidFunctionCount == 0 ? "All functions are comptible" : "Number of functions incompatible: " + invalidFunctionCount);
 
@@ -319,7 +319,7 @@ namespace AthensDependencyCheck
 
             if (invalidDllCount + invalidFunctionCount + differentDllFunctionCount == 0)
             {
-                Console.Out.WriteLine("\n\nYour DLL is compatible with Windows Athens!");
+                Console.Out.WriteLine(string.Format("{0}{1}Your DLL is compatible with Windows Athens!", Environment.NewLine, Environment.NewLine));
             }
         }
 
@@ -330,7 +330,7 @@ namespace AthensDependencyCheck
 
         private static void InvalidUsage()
         {
-            Console.Error.WriteLine("Usage: AthensDependencyCheck.exe (generate | [dllName].dll [-u])");
+            Console.Error.WriteLine("Usage: AthensDependencyCheck.exe (generate | [dllName] [-u])");
             Environment.Exit(1);
         }
 
