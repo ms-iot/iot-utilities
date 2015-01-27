@@ -131,7 +131,7 @@ namespace AthensDependencyCheck
             // Create a batch file to store the dumpbin command
             var bat = Path.ChangeExtension(temp, ".bat");
             File.WriteAllLines(bat, new[] {
-                @"call ""c:\Program Files (x86)\Microsoft Visual Studio 11.0\Common7\Tools\VsDevCmd.bat""",
+                @"call ""%PROGRAMFILES(X86)%\Microsoft Visual Studio 12.0\Common7\Tools\VsDevCmd""",
                 "dumpbin.exe /imports " + dllName + " >> " + temp
             });
 
@@ -283,7 +283,8 @@ namespace AthensDependencyCheck
                                 var functionExists = dataReader.Read();
 
                                 // Ensure that the dll is UAP/Non-UAP compatible and that the function exists
-                                if (functionExists && IsValidAthensDll((DllType)dataReader["D_VERSION"], isUAP))
+
+                                if (functionExists && IsValidAthensDll((DllType)Convert.ToInt32(dataReader["D_VERSION"]), isUAP))
                                 {
                                     csvOutput.AppendFormat(csvOutputFunctionAltDllFormat, dllName, functionName, functionExists, dataReader["D_NAME"]);
 
