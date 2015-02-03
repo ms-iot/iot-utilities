@@ -176,34 +176,48 @@ namespace AthensDependencyCheck
             }
         }
 
-        private static string[] GetDumpbinOutput(string dllName)
+        private static void CheckDeveloperPrompt()
         {
-            // Create a temporary file to store the dumpbin output
-            var temp = Path.GetTempFileName();
+            var haveDeveloperPrompt = false;
+            var path = Environment.GetEnvironmentVariable("PATH");
+            var paths = path.Split(';');
 
-            // Create a batch file to store the dumpbin command
-            var bat = Path.ChangeExtension(temp, ".bat");
-            File.WriteAllLines(bat, new[] {
-                @"call ""%PROGRAMFILES(X86)%\Microsoft Visual Studio 12.0\Common7\Tools\VsDevCmd""",
-                "dumpbin.exe /imports " + dllName + " >> " + temp
-            });
-
-            var info = new ProcessStartInfo
+            // Parse the PATH for dumpbin
+            if (paths.Count() > 0)
             {
-                FileName = "cmd.exe",
-                Arguments = "/C \"" + bat + "\"",
-                CreateNoWindow = true,
-                WindowStyle = ProcessWindowStyle.Hidden
-            };
-            Process.Start(info).WaitForExit();
+                foreach (var s in paths)
+                {
+                    var pth = Path.Combine(s, "dumpbin.exe");
+                    if (File.Exists(pth))
+                    {
+                        haveDeveloperPrompt = true;
+                        break;
+                    }
+                }
+            }
 
-            var output = File.ReadLines(temp).ToArray();
+            if (!haveDeveloperPrompt)
+            {
+                Console.WriteLine("\nPlease launch from a developer command prompt\n");
+                Console.WriteLine("I can't find Dumpbin.exe on the current path\n");
+                Environment.Exit(1);
+            }
+        }
 
-            // Cleanup
-            File.Delete(temp);
-            File.Delete(bat);
+        private static string[] GetDumpbinOutput(string target)
+        {
+            var dumpbin = new Process();
+            dumpbin.StartInfo.FileName = "dumpbin.exe";
+            dumpbin.StartInfo.Arguments = "/imports " + target;
+            dumpbin.StartInfo.UseShellExecute = false;
+            dumpbin.StartInfo.RedirectStandardOutput = true;
+            dumpbin.Start();
 
-            return output;
+            var console = dumpbin.StandardOutput.ReadToEnd();
+            var lines = console.Split('\n');
+
+            dumpbin.WaitForExit();
+            return lines;
         }
 
         private static void ProcessLines(string[] lines, bool isUAP)
@@ -261,7 +275,7 @@ namespace AthensDependencyCheck
                         {
                             var dllType = (DllType)Convert.ToInt32(dataReader["D_VERSION"]);
 
-                            // Check if the dlls is in Athens
+                            // Check if the dll is in Athens
                             if (!IsValidAthensDll(dllType, isUAP))
                             {
                                 isValidDll = false;
@@ -296,6 +310,7 @@ namespace AthensDependencyCheck
                                 break;
                             }
 
+                            // Skip the function is the DLL is not known to us
                             if (!isRecognized)
                             {
                                 continue;
@@ -412,6 +427,7 @@ namespace AthensDependencyCheck
                 }
             }
 
+            CheckDeveloperPrompt();
             var lines = GetDumpbinOutput(args[0]);
             ProcessLines(lines, isUAP);
         }
