@@ -137,35 +137,6 @@ namespace AthensDependencyCheck
                                 command.ExecuteNonQuery();
                             }
                         }
-
-                        // Read in the Athens and other valid dlls
-                        //using (var reader = new StreamReader("dlls.txt"))
-                        //{
-                        //    while (!reader.EndOfStream)
-                        //    {
-                        //         Get the DLL name and whether it is available in a UAP app
-                        //        var dllName = reader.ReadLine().ToLower().Trim();
-                        //        var dllType = StringToDllType(reader.ReadLine().Trim());
-
-                        //        command.CommandText = string.Format(insertDll, dllName, dllType);
-                        //        command.ExecuteNonQuery();
-
-                        //         Get the functions for that DLL
-                        //        while (!reader.EndOfStream)
-                        //        {
-                        //            var functionName = reader.ReadLine();
-
-                        //             Terminate on end of file or blank line
-                        //            if (string.IsNullOrWhiteSpace(functionName))
-                        //            {
-                        //                break;
-                        //            }
-
-                        //            command.CommandText = string.Format(insertFunction, functionName, dllName);
-                        //            command.ExecuteNonQuery();
-                        //        }
-                        //    }
-                        //}
                     }
                     catch (IOException)
                     {
