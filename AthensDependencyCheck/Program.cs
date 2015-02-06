@@ -179,7 +179,7 @@ namespace AthensDependencyCheck
         {
             var dumpbin = new Process();
             dumpbin.StartInfo.FileName = "dumpbin.exe";
-            dumpbin.StartInfo.Arguments = "/imports " + target;
+            dumpbin.StartInfo.Arguments = "/imports \"" + target + '"';
             dumpbin.StartInfo.UseShellExecute = false;
             dumpbin.StartInfo.RedirectStandardOutput = true;
             dumpbin.Start();
@@ -212,8 +212,17 @@ namespace AthensDependencyCheck
 
                 using (var command = connection.CreateCommand())
                 {
-                    // Start at line 10 to eliminate pre-import output
-                    var index = 10;
+                    var index = 0;
+
+                    // increment until we find a dll or hit the end
+                    for (index = 0; index < lines.Length; index++)
+                    {
+                        if (lines[index].ToLower().Trim().EndsWith(".dll"))
+                        {
+                            break;
+                        }
+                    }
+
                     var csvOutput = new StringBuilder("DLL NAME, FUNCTION NAME, ALTERNATE DLL\n\n");
 
                     // Parse the dlls
