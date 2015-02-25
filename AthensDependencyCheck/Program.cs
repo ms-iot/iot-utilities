@@ -3,6 +3,7 @@ using System.Data.SQLite;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace AthensDependencyCheck
@@ -46,8 +47,10 @@ namespace AthensDependencyCheck
             var insertDll = "INSERT INTO DLL VALUES('{0}', {1});";
             var insertFunction = "INSERT INTO FUNCTION (F_NAME, F_DLL_NAME) VALUES('{0}', '{1}');";
 
-            SQLiteConnection.CreateFile("athensCheck.db3");
-            using (var connection = new SQLiteConnection("data source=athensCheck.db3"))
+            var dbPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\athensCheck.db3";
+
+            SQLiteConnection.CreateFile(dbPath);
+            using (var connection = new SQLiteConnection("data source=" + dbPath))
             {
                 connection.Open();
 
@@ -79,7 +82,7 @@ namespace AthensDependencyCheck
 
                     try
                     {
-                        using (var reader = new StreamReader("AthensDLLs.txt"))
+                        using (var reader = new StreamReader(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\AthensDLLs.txt"))
                         {
                             var lastDll = string.Empty;
 
@@ -118,7 +121,7 @@ namespace AthensDependencyCheck
                         }
 
                         // Read in the known Windows 8 dlls
-                        using (var reader = new StreamReader("Win8DLLs.txt"))
+                        using (var reader = new StreamReader(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\Win8DLLs.txt"))
                         {
                             while (!reader.EndOfStream)
                             {
@@ -206,7 +209,9 @@ namespace AthensDependencyCheck
             var differentDllFunctionCount = 0;
             var notRecognizedDllCount = 0;
 
-            using (var connection = new SQLiteConnection(@"data source=athensCheck.db3"))
+            var dbPath = "data source=" + Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\athensCheck.db3";
+
+            using (var connection = new SQLiteConnection(dbPath))
             {
                 connection.Open();
 
@@ -215,7 +220,7 @@ namespace AthensDependencyCheck
                     var index = 0;
 
                     // increment until we find a dll or hit the end
-                    for (index = 0; index < lines.Length; index++)
+                    for (index = 5; index < lines.Length; index++)
                     {
                         if (lines[index].ToLower().Trim().EndsWith(".dll"))
                         {
