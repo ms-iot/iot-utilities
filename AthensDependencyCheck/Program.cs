@@ -194,7 +194,7 @@ namespace AthensDependencyCheck
             return lines;
         }
 
-        private static void ProcessLines(string[] lines, bool isUAP)
+        private static void ProcessLines(string[] lines, bool isUAP, string filename)
         {
             // Queries
             var functionDLLJoin = "SELECT * FROM FUNCTION, DLL WHERE F_NAME = '{0}' AND D_NAME = F_DLL_NAME";
@@ -403,11 +403,11 @@ namespace AthensDependencyCheck
 
                     try
                     {
-                        File.WriteAllText("result.csv", csvOutput.ToString());
+                        File.WriteAllText(filename + ".csv", csvOutput.ToString());
                     }
                     catch (IOException)
                     {
-                        Console.Out.WriteLine("***Please close the results.csv file to obtain your detailed results***");
+                        Console.Out.WriteLine(string.Format("***Please close the {0}.csv file to obtain your detailed results***", filename));
                     }
                 }
             }
@@ -476,7 +476,7 @@ namespace AthensDependencyCheck
 
             CheckDeveloperPrompt();
             var lines = GetDumpbinOutput(args[0]);
-            ProcessLines(lines, isUAP);
+            ProcessLines(lines, isUAP, args[0]);
         }
     }
 }
