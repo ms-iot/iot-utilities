@@ -428,8 +428,10 @@ namespace AthensDependencyCheck
 
             if (invalidDllCount + invalidFunctionCount + differentDllFunctionCount == 0)
             {
-                Console.Out.WriteLine(string.Format("{0}{1}Your DLL is compatible with Windows Athens!", Environment.NewLine, Environment.NewLine));
+                Console.Out.WriteLine(string.Format("{0}{1}Compatible with Windows Athens!", Environment.NewLine, Environment.NewLine));
             }
+
+            Console.Out.WriteLine();
         }
 
         private static bool IsValidAthensDll(DllType dllType, bool isUAP)
@@ -475,8 +477,35 @@ namespace AthensDependencyCheck
             }
 
             CheckDeveloperPrompt();
-            var lines = GetDumpbinOutput(args[0]);
-            ProcessLines(lines, isUAP, args[0]);
+
+            var path = Path.GetDirectoryName(args[0]);
+
+            if (path.Length == 0)
+            {
+                path = @".\";
+            }
+
+            var filePattern = Path.GetFileName(args[0]);
+            var files = Directory.GetFiles(path, filePattern);
+
+            if (files.Count() == 0)
+            {
+                Console.Out.WriteLine(string.Format("No files found that match '{0}'", args[0]));
+                InvalidUsage();
+            }
+
+            foreach (var file in files)
+            {
+                if (!file.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) || !!file.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                Console.Out.WriteLine();
+                Console.Out.WriteLine("Parsing " + file);
+                var lines = GetDumpbinOutput(file);
+                ProcessLines(lines, isUAP, file);
+            }
         }
     }
 }
