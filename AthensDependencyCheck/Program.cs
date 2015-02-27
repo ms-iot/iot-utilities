@@ -198,6 +198,16 @@ namespace AthensDependencyCheck
         {
             // Queries
             var functionDLLJoin = "SELECT * FROM FUNCTION, DLL WHERE F_NAME = '{0}' AND D_NAME = F_DLL_NAME";
+            var ordinal = "select * from COREDLL where API_ORDINAL = {0}";
+            string apiQuery;
+            if (isUAP)   // look for UAP Win32 APIs only.
+            {
+                apiQuery = "select * from ModernAPIs where APIName = '{0}' COLLATE NOCASE";
+            }
+            else
+            {                   // look for O/S - ONECOREUAP APIs
+                apiQuery = "select * from ONECOREUAP where API_Name = '{0}' COLLATE NOCASE";
+            }
 
             // Output formatting
             var csvOutputFunctionSameDllFormat = "{0},{1}\n";
@@ -208,6 +218,8 @@ namespace AthensDependencyCheck
             var invalidFunctionCount = 0;
             var differentDllFunctionCount = 0;
             var notRecognizedDllCount = 0;
+
+            var isCoreDLL = false;
 
             var dbPath = "data source=" + Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\athensCheck.db3";
 
@@ -230,6 +242,12 @@ namespace AthensDependencyCheck
 
                     var csvOutput = new StringBuilder("DLL NAME, FUNCTION NAME, ALTERNATE DLL\n\n");
 
+                    var apiDBPath = "data source=" + Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\ModernAPIs.sqlite";
+                    var apiDBConnection = new SQLiteConnection(apiDBPath);
+                    apiDBConnection.Open();
+
+                    var apiDBCommand = new SQLiteCommand(apiDBConnection);
+
                     // Parse the dlls
                     while (true)
                     {
@@ -250,27 +268,36 @@ namespace AthensDependencyCheck
 
                         var dllName = currentLine;
 
+                        isCoreDLL = dllName.Equals("coredll.dll");
+
                         // Try to get the dll from the db
                         command.CommandText = string.Format(selectDll, dllName);
                         var dataReader = command.ExecuteReader();
                         var isValidDll = true;
                         var isRecognized = dataReader.Read();
 
-                        if (isRecognized)
+                        if (!isCoreDLL)
                         {
-                            var dllType = (DllType)Convert.ToInt32(dataReader["D_VERSION"]);
-
-                            // Check if the dll is in Athens
-                            if (!IsValidAthensDll(dllType, isUAP))
+                            if (isRecognized)
                             {
-                                isValidDll = false;
-                                invalidDllCount++;
+                                var dllType = (DllType)Convert.ToInt32(dataReader["D_VERSION"]);
+
+                                // Check if the dll is in Athens
+                                if (!IsValidAthensDll(dllType, isUAP))
+                                {
+                                    isValidDll = false;
+                                    invalidDllCount++;
+                                }
+                            }
+                            else
+                            {
+                                notRecognizedDllCount++;
                             }
                         }
                         else
                         {
-                            csvOutput.AppendFormat(csvOutputFunctionSameDllFormat, dllName, "Unknown DLL");
-                            notRecognizedDllCount++;
+                            isValidDll = false;
+                            invalidDllCount++;
                         }
 
                         dataReader.Close();
@@ -295,20 +322,27 @@ namespace AthensDependencyCheck
                                 break;
                             }
 
-                            // Skip the function is the DLL is not known to us
-                            if (!isRecognized)
-                            {
-                                continue;
-                            }
-
                             var tableComponents = currentLine.Split(' ');
 
-                            if (tableComponents[0] == "Ordinal")
+                            if (!isCoreDLL && tableComponents[0] == "Ordinal")
                             {
                                 continue;
                             }
 
                             var functionName = tableComponents.Last();
+
+                            if (isCoreDLL && !functionName.Equals("-1"))
+                            {
+                                apiDBCommand.CommandText = string.Format(ordinal, functionName);
+                                dataReader = apiDBCommand.ExecuteReader();
+
+                                if (dataReader.Read())
+                                {
+                                    functionName = dataReader.GetString(0);
+                                }
+
+                                dataReader.Close();
+                            }
 
                             // If the dll exists double check that the function exists, otherwise see if there is another dll that has it
                             if (isValidDll)
@@ -316,40 +350,65 @@ namespace AthensDependencyCheck
                                 command.CommandText = string.Format(functionSelectWithDll, functionName, dllName);
                                 dataReader = command.ExecuteReader();
                                 var functionExists = dataReader.Read();
+                                dataReader.Close();
+
+                                apiDBCommand.CommandText = string.Format(apiQuery, functionName);
+                                dataReader = apiDBCommand.ExecuteReader();
+
+                                functionExists &= dataReader.Read();
+
+                                dataReader.Close();
 
                                 if (!functionExists)
                                 {
                                     invalidFunctionCount++;
                                     csvOutput.AppendFormat(csvOutputFunctionSameDllFormat, dllName, functionName, functionExists);
                                 }
-
-                                dataReader.Close();
                             }
                             else
                             {
                                 command.CommandText = string.Format(functionDLLJoin, functionName);
                                 dataReader = command.ExecuteReader();
-                                var functionExists = dataReader.Read();
+                                var functionExistsInAltDll = dataReader.Read();
 
-                                // Ensure that the dll is UAP/Non-UAP compatible and that the function exists
+                                var altDll = functionExistsInAltDll ? dataReader["D_NAME"] : null;
 
-                                if (functionExists && IsValidAthensDll((DllType)Convert.ToInt32(dataReader["D_VERSION"]), isUAP))
+                                dataReader.Close();
+
+                                apiDBCommand.CommandText = string.Format(apiQuery, functionName);
+                                dataReader = apiDBCommand.ExecuteReader();
+                                bool functionExists = dataReader.Read();
+
+                                dataReader.Close();
+
+                                if (functionExists && functionExistsInAltDll)
                                 {
-                                    csvOutput.AppendFormat(csvOutputFunctionAltDllFormat, dllName, functionName, dataReader["D_NAME"]);
+                                    csvOutput.AppendFormat(csvOutputFunctionAltDllFormat, dllName, functionName, altDll);
                                     differentDllFunctionCount++;
+                                }
+                                else if (functionExists)
+                                {
+                                    continue;
                                 }
                                 else
                                 {
                                     invalidFunctionCount++;
                                     csvOutput.AppendFormat(csvOutputFunctionSameDllFormat, dllName, functionName, functionExists);
                                 }
-
-                                dataReader.Close();
                             }
                         }
                     }
 
-                    File.WriteAllText("result.csv", csvOutput.ToString());
+                    apiDBConnection.Close();
+
+                    try
+                    {
+                        File.WriteAllText("result.csv", csvOutput.ToString());
+                    }
+                    catch (IOException)
+                    {
+                        Console.Out.WriteLine("***Please close the results.csv file to obtain your detailed results***");
+                    }
                 }
             }
 
@@ -380,7 +439,10 @@ namespace AthensDependencyCheck
 
         private static void InvalidUsage()
         {
-            Console.Error.WriteLine("Usage: AthensDependencyCheck.exe (generate | [dllName] [-u])");
+            Console.Out.WriteLine("Usage: AthensDependencyCheck.exe <win32 Binary> [-os]");
+            Console.Out.WriteLine("Note: adding [-os] as a option will scan the underlying o/s APIs");
+            Console.Out.WriteLine("The default option is to scan for Win32 UAP supported APIs");
+
             Environment.Exit(1);
         }
 
@@ -392,17 +454,17 @@ namespace AthensDependencyCheck
             }
 
             // Assumption no input file name is just "generate" (Could be a bad one)
-            if (args.Length == 1 && args[0].Equals("generate"))
-            {
-                GenerateTables();
-                return;
-            }
+            //if (args.Length == 1 && args[0].Equals("generate"))
+            //{
+            //    GenerateTables();
+            //    return;
+            //}
 
             var isUAP = true;
 
             // Check for a Non-UAP flag
             if (args.Length == 2) {
-                if (!args[1].Equals("-u"))
+                if (!args[1].ToLower().Equals("-os"))
                 {
                     InvalidUsage();
                 } 
