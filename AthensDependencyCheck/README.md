@@ -1,6 +1,6 @@
 ###AthensDependencyCheck
 
-This tool is there to assist you in migrating your current Win32 applications and dlls to Windows "Athens".
+This tool assists you with the migration of your current Win32 applications and DLLs to Windows "Athens".
 
 ##Usage
 
@@ -8,4 +8,4 @@ The tool can be run by running `AthensDependencyCheck.exe <path> [-os]`. The `pa
 
 ##Output
 
-The results will be outputted to a file named `<input-filename>.csv` and a summary will be on the command line.
+The results will be outputted to a file named `<input-filename>.csv` and a summary will be on the command line. The csv file is generated in the same directory that the binary is in (e.g if foo.exe is in `C:\`, foo.exe.csv will be there as well).
