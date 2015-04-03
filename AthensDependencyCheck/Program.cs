@@ -220,6 +220,7 @@ namespace AthensDependencyCheck
             var notRecognizedDllCount = 0;
 
             var isCoreDLL = false;
+            var isClrDLL = false;
 
             var dbPath = "data source=" + Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\athensCheck.db3";
 
@@ -269,6 +270,7 @@ namespace AthensDependencyCheck
                         var dllName = currentLine;
 
                         isCoreDLL = dllName.Equals("coredll.dll");
+                        isClrDLL = dllName.StartsWith("msvcr");
 
                         // Try to get the dll from the db
                         command.CommandText = string.Format(selectDll, dllName);
@@ -276,7 +278,7 @@ namespace AthensDependencyCheck
                         var isValidDll = true;
                         var isRecognized = dataReader.Read();
 
-                        if (!isCoreDLL)
+                        if (!isCoreDLL && !isClrDLL)
                         {
                             if (isRecognized)
                             {
@@ -294,7 +296,7 @@ namespace AthensDependencyCheck
                                 notRecognizedDllCount++;
                             }
                         }
-                        else
+                        else if (!isClrDLL)
                         {
                             isValidDll = false;
                             invalidDllCount++;
@@ -324,7 +326,7 @@ namespace AthensDependencyCheck
 
                             var tableComponents = currentLine.Split(' ');
 
-                            if (!isCoreDLL && tableComponents[0] == "Ordinal")
+                            if ((!isCoreDLL && tableComponents[0] == "Ordinal") || isClrDLL)
                             {
                                 continue;
                             }
