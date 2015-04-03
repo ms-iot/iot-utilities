@@ -194,7 +194,7 @@ namespace AthensDependencyCheck
             return lines;
         }
 
-        private static void ProcessLines(string[] lines, bool isUAP, string filename)
+        private static void ProcessLines(string[] lines, bool isUAP, string filename, StringBuilder outputBuilder)
         {
             // Queries
             var functionDLLJoin = "SELECT * FROM FUNCTION, DLL WHERE F_NAME = '{0}' AND D_NAME = F_DLL_NAME";
@@ -210,8 +210,8 @@ namespace AthensDependencyCheck
             }
 
             // Output formatting
-            var csvOutputFunctionSameDllFormat = "{0},{1}\n";
-            var csvOutputFunctionAltDllFormat = "{0},{1},{2}\n";
+            var csvOutputFunctionSameDllFormat = filename + ",{0},{1}\n";
+            var csvOutputFunctionAltDllFormat = filename + ",{0},{1},{2}\n";
 
             // Counts for errors/warnings
             var invalidDllCount = 0;
@@ -240,8 +240,6 @@ namespace AthensDependencyCheck
                             break;
                         }
                     }
-
-                    var csvOutput = new StringBuilder("DLL NAME, FUNCTION NAME, ALTERNATE DLL\n\n");
 
                     var apiDBPath = "data source=" + Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\ModernAPIs.sqlite";
                     var apiDBConnection = new SQLiteConnection(apiDBPath);
@@ -364,7 +362,7 @@ namespace AthensDependencyCheck
                                 if (!functionExists)
                                 {
                                     invalidFunctionCount++;
-                                    csvOutput.AppendFormat(csvOutputFunctionSameDllFormat, dllName, functionName, functionExists);
+                                    outputBuilder.AppendFormat(csvOutputFunctionSameDllFormat, dllName, functionName, functionExists);
                                 }
                             }
                             else
@@ -385,7 +383,7 @@ namespace AthensDependencyCheck
 
                                 if (functionExists && functionExistsInAltDll)
                                 {
-                                    csvOutput.AppendFormat(csvOutputFunctionAltDllFormat, dllName, functionName, altDll);
+                                    outputBuilder.AppendFormat(csvOutputFunctionAltDllFormat, dllName, functionName, altDll);
                                     differentDllFunctionCount++;
                                 }
                                 else if (functionExists)
@@ -395,27 +393,18 @@ namespace AthensDependencyCheck
                                 else
                                 {
                                     invalidFunctionCount++;
-                                    csvOutput.AppendFormat(csvOutputFunctionSameDllFormat, dllName, functionName, functionExists);
+                                    outputBuilder.AppendFormat(csvOutputFunctionSameDllFormat, dllName, functionName, functionExists);
                                 }
                             }
                         }
                     }
 
                     apiDBConnection.Close();
-
-                    try
-                    {
-                        File.WriteAllText(filename + ".csv", csvOutput.ToString());
-                    }
-                    catch (IOException)
-                    {
-                        Console.Out.WriteLine(string.Format("***Please close the {0}.csv file to obtain your detailed results***", filename));
-                    }
                 }
             }
 
             // Summary output
-            Console.Out.WriteLine(string.Format("{0}{1}Summary", Environment.NewLine, Environment.NewLine));
+            Console.Out.WriteLine(string.Format("{0}{1}Summary for {2}", Environment.NewLine, Environment.NewLine, filename));
             Console.Out.WriteLine(invalidDllCount == 0 ? "All DLLs are compatible" : "Number of DLLs incompatible: " + invalidDllCount);
             Console.Out.WriteLine(invalidFunctionCount == 0 ? "All functions are comptible" : "Number of functions incompatible: " + invalidFunctionCount);
 
@@ -496,17 +485,31 @@ namespace AthensDependencyCheck
                 InvalidUsage();
             }
 
+            var outputFile = isUAP ? "AthensDependencyCheck.csv" : "AthensDependencyCheckOS.csv";
+            var outputBuilder = new StringBuilder("INPUT FILE,DLL NAME,FUNCTION NAME,ALTERNATE DLL\n\n");
+
             foreach (var file in files)
             {
-                if (!file.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) && !!file.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
+                if (!file.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) && !file.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
 
+                var trimmedFilename = file.Substring((file.IndexOf('\\') + 1));
+
                 Console.Out.WriteLine();
-                Console.Out.WriteLine("Parsing " + file);
-                var lines = GetDumpbinOutput(file);
-                ProcessLines(lines, isUAP, file);
+                Console.Out.WriteLine("Parsing " + trimmedFilename);
+                var lines = GetDumpbinOutput(trimmedFilename);
+                ProcessLines(lines, isUAP, trimmedFilename, outputBuilder);
+            }
+
+            try
+            {
+                File.WriteAllText(outputFile, outputBuilder.ToString());
+            }
+            catch (Exception)
+            {
+                Console.Out.WriteLine(string.Format("***Please close the {0} file to obtain your detailed results***", outputFile));
             }
         }
     }
