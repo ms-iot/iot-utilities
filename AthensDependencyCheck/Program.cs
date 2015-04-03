@@ -496,7 +496,7 @@ namespace AthensDependencyCheck
 
             foreach (var file in files)
             {
-                if (!file.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) || !!file.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
+                if (!file.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) && !!file.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
