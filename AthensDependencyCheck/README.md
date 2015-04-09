@@ -1,11 +1,19 @@
 ###AthensDependencyCheck
 
-This tool assists you with the migration of your current Win32 applications and DLLs to Windows "Athens".
+Are the APIs that your current Win32 application or library depend on available in Windows "Athens"?  If not, are there equivalent APIs you can use?  This tool can answer these questions for you and assist you in migrating your current Win32 applications and libraries to Windows "Athens".
 
-##Usage
+####Usage
 
-The tool can be run by running `AthensDependencyCheck.exe <path> [-os]`. The `path` is the path to the directory of where your exe and dll files are located. By default, the app validates them against the Windows UAP platform, but if you are not looking to use UAP include the `-os` argument.
+You can find `AthensDependencyCheck.exe` under `C:\Program Files (x86)\Microsoft IoT`.  It is installed by running WindowsDeveloperProgramforIoT.msi (which can be found in the download location where you downloaded this documentation).
 
-##Output
+You can use the tool by running `C:\Program Files (x86)\Microsoft IoT\AthensDependencyCheck.exe <path> [-os]`.  
 
-The results will be outputted to a file named `<input-filename>.csv` and a summary will be on the command line. The csv file is generated in the same directory that the binary is in (e.g if foo.exe is in `C:\`, foo.exe.csv will be there as well).
+*  `<path>` should provide the path to the directory of where your exe and/or dll files are located. 
+
+*  `-os` should be specified if you are not planning to use UAP.  By default, the tool validates your binaries against the Windows UAP platform.
+
+        NOTE: AthensDependencyCheck.exe must be run from a Visual Studio Developer Command Prompt.
+
+####Output
+
+The tool will generate a comma separated values (csv) file named `AthensDependencyCheck.csv` (or, `AthensDependencyCheckOS.csv` if -os is specified) and a summary will be on the command line. Open the `.csv` file in Excel to analyze the complete output.
