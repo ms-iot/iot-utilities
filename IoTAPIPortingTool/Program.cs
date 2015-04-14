@@ -6,7 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 
-namespace AthensDependencyCheck
+namespace IoTAPIPortingTool
 {
     class Program
     {
@@ -14,28 +14,9 @@ namespace AthensDependencyCheck
         {
             Windows8 = 0,
             WindowsCE = 1,
-            WindowsAthens = 2,
-            WindowsAthensUAP = 3,
-            WindowsAthensNonUAP = 4,
-        }
-
-        private static DllType StringToDllType(string dllType)
-        {
-            switch (dllType)
-            {
-                case "8":
-                    return DllType.Windows8;
-                case "CE":
-                    return DllType.WindowsCE;
-                case "Athens":
-                    return DllType.WindowsAthens;
-                case "UAP":
-                    return DllType.WindowsAthensUAP;
-                case "NonUAP":
-                    return DllType.WindowsAthensNonUAP;
-                default:
-                    throw new ArgumentException("Invalid DLL Type");
-            }
+            WindowsIoT = 2,
+            WindowsIoTUAP = 3,
+            WindowsIoTNonUAP = 4,
         }
 
         private const string functionSelect = "SELECT * FROM FUNCTION WHERE F_NAME = '{0}';";
@@ -47,7 +28,7 @@ namespace AthensDependencyCheck
             var insertDll = "INSERT INTO DLL VALUES('{0}', {1});";
             var insertFunction = "INSERT INTO FUNCTION (F_NAME, F_DLL_NAME) VALUES('{0}', '{1}');";
 
-            var dbPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\athensCheck.db3";
+            var dbPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\apiCheck.db3";
 
             SQLiteConnection.CreateFile(dbPath);
             using (var connection = new SQLiteConnection("data source=" + dbPath))
@@ -82,7 +63,7 @@ namespace AthensDependencyCheck
 
                     try
                     {
-                        using (var reader = new StreamReader(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\AthensDLLs.txt"))
+                        using (var reader = new StreamReader(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\IoTDLLs.txt"))
                         {
                             var lastDll = string.Empty;
 
@@ -111,7 +92,7 @@ namespace AthensDependencyCheck
 
                                 if (!exists)
                                 {
-                                    command.CommandText = string.Format(insertDll, dll, Convert.ToInt32(DllType.WindowsAthens));
+                                    command.CommandText = string.Format(insertDll, dll, Convert.ToInt32(DllType.WindowsIoT));
                                     command.ExecuteNonQuery();
                                 }
 
@@ -222,7 +203,7 @@ namespace AthensDependencyCheck
             var isCoreDLL = false;
             var isCrtDLL = false;
 
-            var dbPath = "data source=" + Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\athensCheck.db3";
+            var dbPath = "data source=" + Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\apiCheck.db3";
 
             using (var connection = new SQLiteConnection(dbPath))
             {
@@ -282,8 +263,8 @@ namespace AthensDependencyCheck
                             {
                                 var dllType = (DllType)Convert.ToInt32(dataReader["D_VERSION"]);
 
-                                // Check if the dll is in Athens
-                                if (!IsValidAthensDll(dllType, isUAP))
+                                // Check if the dll is in IoT
+                                if (!IsValidIoTDll(dllType, isUAP))
                                 {
                                     isValidDll = false;
                                     invalidDllCount++;
@@ -419,20 +400,20 @@ namespace AthensDependencyCheck
 
             if (invalidDllCount + invalidFunctionCount + differentDllFunctionCount == 0)
             {
-                Console.Out.WriteLine(string.Format("{0}{1}Compatible with Windows Athens!", Environment.NewLine, Environment.NewLine));
+                Console.Out.WriteLine(string.Format("{0}{1}Compatible with Windows IoT Core!", Environment.NewLine, Environment.NewLine));
             }
 
             Console.Out.WriteLine();
         }
 
-        private static bool IsValidAthensDll(DllType dllType, bool isUAP)
+        private static bool IsValidIoTDll(DllType dllType, bool isUAP)
         {
-            return (dllType == DllType.WindowsAthens || (isUAP && dllType == DllType.WindowsAthensUAP) || (!isUAP && dllType == DllType.WindowsAthensNonUAP));
+            return (dllType == DllType.WindowsIoT || (isUAP && dllType == DllType.WindowsIoTUAP) || (!isUAP && dllType == DllType.WindowsIoTNonUAP));
         }
 
         private static void InvalidUsage()
         {
-            Console.Out.WriteLine("Usage: AthensDependencyCheck.exe <win32 Binary> [-os]");
+            Console.Out.WriteLine("Usage: IoTAPIPortingTool.exe <win32 Binary> [-os]");
             Console.Out.WriteLine("Note: adding [-os] as a option will scan the underlying o/s APIs");
             Console.Out.WriteLine("The default option is to scan for Win32 UAP supported APIs");
 
@@ -447,11 +428,11 @@ namespace AthensDependencyCheck
             }
 
             // Assumption no input file name is just "generate" (Could be a bad one)
-            //if (args.Length == 1 && args[0].Equals("generate"))
-            //{
-            //    GenerateTables();
-            //    return;
-            //}
+            if (args.Length == 1 && args[0].Equals("generate"))
+            {
+                GenerateTables();
+                return;
+            }
 
             var isUAP = true;
 
@@ -485,7 +466,7 @@ namespace AthensDependencyCheck
                 InvalidUsage();
             }
 
-            var outputFile = isUAP ? "AthensDependencyCheck.csv" : "AthensDependencyCheckOS.csv";
+            var outputFile = isUAP ? "IoTAPIPortingTool.csv" : "IoTAPIPortingToolOS.csv";
             var outputBuilder = new StringBuilder("INPUT FILE,DLL NAME,FUNCTION NAME,ALTERNATE DLL\n\n");
 
             foreach (var file in files)
