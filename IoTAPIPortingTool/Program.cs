@@ -216,6 +216,12 @@ namespace IoTAPIPortingTool
                     // increment until we find a dll or hit the end
                     for (index = 5; index < lines.Length; index++)
                     {
+                        if (lines[index].ToLower().Contains("fatal error"))
+                        {
+                            Console.Out.WriteLine("Unknown Error. Skipping " + filename);
+                            return;
+                        }
+
                         if (lines[index].ToLower().Trim().EndsWith(".dll"))
                         {
                             break;
@@ -480,7 +486,7 @@ namespace IoTAPIPortingTool
 
                 Console.Out.WriteLine();
                 Console.Out.WriteLine("Parsing " + trimmedFilename);
-                var lines = GetDumpbinOutput(trimmedFilename);
+                var lines = GetDumpbinOutput(file);
                 ProcessLines(lines, isUAP, trimmedFilename, outputBuilder);
             }
 
