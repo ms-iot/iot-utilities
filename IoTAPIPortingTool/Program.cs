@@ -490,6 +490,8 @@ namespace IoTAPIPortingTool
                 ProcessLines(lines, isUAP, trimmedFilename, outputBuilder);
             }
 
+            GenerateHTMLOutput(outputBuilder);
+
             try
             {
                 File.WriteAllText(outputFile, outputBuilder.ToString());
@@ -498,6 +500,41 @@ namespace IoTAPIPortingTool
             {
                 Console.Out.WriteLine(string.Format("***Please close the {0} file to obtain your detailed results***", outputFile));
             }
+        }
+
+        private static void GenerateHTMLOutput(StringBuilder outputBuilder)
+        {
+            // generate simple HTML file here.
+            string strHTMLOut = @".\Results.htm";
+
+            if (File.Exists(strHTMLOut))
+                File.Delete(strHTMLOut);
+
+            StreamWriter sw = new StreamWriter(strHTMLOut);
+            sw.Write("<!DOCTYPE html><html><body>");
+            sw.Write("<h1>IOT API Porting Tool - Scan results</h1>");
+            sw.Write("<table border=\"1\">");
+            // write out the contents of outputbuilder
+            string sOutString = outputBuilder.ToString();
+            string[] sLines = sOutString.Split('\n');
+            foreach (string s in sLines)
+            {
+                string[] sSubItems = s.Split(',');
+                if (sSubItems.Count() >= 3)
+                {
+                    sw.Write("<tr>");
+                    foreach (string x in sSubItems)
+                    {
+                        sw.Write("<td>" + x + "</td>");
+                    }
+                    sw.Write("</tr>");
+                }
+            }
+            sw.Write("</table>");
+            sw.Write("</body></html>");
+
+            sw.Flush();
+            sw.Close();
         }
     }
 }
