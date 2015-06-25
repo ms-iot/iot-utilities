@@ -1,0 +1,84 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Color x:Key="AppForegroundColor">#FFFFFFFF</Color>
+    <SolidColorBrush x:Key="AppForegroundBrush" Color="{StaticResource AppForegroundColor}"/>
+
+    <Color x:Key="AppBackgroundColor">#FF62B4FD</Color>
+    <SolidColorBrush x:Key="AppBackgroundBrush" Color="{StaticResource AppBackgroundColor}"/>
+
+    <Color x:Key="AppUtilityButtonForegroundColor">#FF000000</Color>
+    <SolidColorBrush x:Key="AppUtilityButtonForegroundBrush" Color="{StaticResource AppUtilityButtonForegroundColor}"/>
+
+    <Color x:Key="AppUtilityButtonBackgroundColor">#FFA0A0A0</Color>
+    <SolidColorBrush x:Key="AppUtilityButtonBackgroundBrush" Color="{StaticResource AppUtilityButtonBackgroundColor}"/>
+
+    <Color x:Key="AppCommandButtonForegroundColor">#FFFFFFFF</Color>
+    <SolidColorBrush x:Key="AppCommandButtonForegroundBrush" Color="{StaticResource AppCommandButtonForegroundColor}"/>
+
+    <Color x:Key="AppCommandButtonBackgroundColor">#FF3E8ED4</Color>
+    <SolidColorBrush x:Key="AppCommandButtonBackgroundBrush" Color="{StaticResource AppCommandButtonBackgroundColor}"/>
+
+    <Color x:Key="AppMessageForegroundColor">#FF000000</Color>
+    <SolidColorBrush x:Key="AppMessageForegroundBrush" Color="{StaticResource AppMessageForegroundColor}"/>
+
+    <Color x:Key="AppMessageBackgroundColor">#FFFFFFFF</Color>
+    <SolidColorBrush x:Key="AppMessageBackgroundBrush" Color="{StaticResource AppMessageBackgroundColor}"/>
+
+    <Color x:Key="AppMessageBorderColor">#FF000000</Color>
+    <SolidColorBrush x:Key="AppMessageBorderBrush" Color="{StaticResource AppMessageBorderColor}"/>
+
+    <Style x:Key="AppBaseTextBoxStyle" TargetType="TextBox">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="FontSize" Value="15"/>
+    </Style>
+
+    <Style x:Key="AppBaseTextBlockStyle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontWeight" Value="350"/> <!-- 350 is SemiLight -->
+        <Setter Property="FontSize" Value="15"/>
+        <Setter Property="Foreground" Value="{StaticResource AppForegroundBrush}"/>
+    </Style>
+
+    <Style x:Key="AppHeaderTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource AppBaseTextBlockStyle}">
+        <Setter Property="FontWeight" Value="Light"/>
+        <Setter Property="FontSize" Value="34"/>
+    </Style>
+
+    <Style x:Key="AppSubHeaderTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource AppBaseTextBlockStyle}">
+        <Setter Property="FontWeight" Value="350"/> <!-- 350 is SemiLight -->
+        <Setter Property="FontSize" Value="24"/>
+    </Style>
+
+    <Style x:Key="AppStatusTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource AppBaseTextBlockStyle}">
+        <Setter Property="FontWeight" Value="Normal"/>
+        <Setter Property="FontSize" Value="11"/>
+    </Style>
+
+    <Style x:Key="ListBoxTextBlockStyle" TargetType="ListBox">
+        <Setter Property="BorderBrush" Value="{x:Null}"/>
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="FontSize" Value="15"/>
+    </Style>
+
+    <Style x:Key="AppUtilityButtonStyle" TargetType="Button">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontWeight" Value="350"/> <!-- 350 is SemiLight -->
+        <Setter Property="FontSize" Value="17"/>
+        <Setter Property="BorderBrush" Value="{x:Null}"/>
+        <Setter Property="Foreground" Value="{StaticResource AppUtilityButtonForegroundBrush}"/>
+        <Setter Property="Background" Value="{StaticResource AppUtilityButtonBackgroundBrush}"/>
+    </Style>
+
+    <Style x:Key="AppCommandButtonStyle" TargetType="Button">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="FontSize" Value="17"/>
+        <Setter Property="BorderBrush" Value="{x:Null}"/>
+        <Setter Property="Foreground" Value="{StaticResource AppCommandButtonForegroundBrush}"/>
+        <Setter Property="Background" Value="{StaticResource AppCommandButtonBackgroundBrush}"/>
+    </Style>
+
+</ResourceDictionary>
