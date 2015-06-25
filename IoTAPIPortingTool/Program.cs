@@ -1,4 +1,6 @@
-﻿using System;
+﻿﻿// Copyright (c) Microsoft. All rights reserved.
+
+ using System;
 using System.Data.SQLite;
 using System.Diagnostics;
 using System.IO;
