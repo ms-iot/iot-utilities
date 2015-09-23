@@ -1,0 +1,23 @@
+﻿<Window x:Class="CoreWatcher.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:CoreWatcher"
+        mc:Ignorable="d"
+        Title="Windows 10 IoT Core Watcher" Height="350" Width="572" ResizeMode="CanResizeWithGrip" Icon="Resources/CoreWatcherIcon.ico">
+    <Grid>
+        <DataGrid x:Name="WatcherDataGrid" RenderTransformOrigin="-4.75,-3.077" Margin="10,10,10,63" GridLinesVisibility="None" SelectionMode="Single" IsReadOnly="True">
+            <DataGrid.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Copy MAC Address" Click="CopyMacAddress_Click"/>
+                    <MenuItem Header="Copy IP Address" Click="CopyIPAddress_Click"/>
+                    <MenuItem Header="Telnet Here" Click="TelnetHere_Click"/>
+                    <MenuItem Header="Web Browser Here" Click="WebBrowserHere_Click"/>
+                    <MenuItem Header="Open Network Share" Click="OpenNetworkShare_Click"/>
+                </ContextMenu>
+            </DataGrid.ContextMenu>
+        </DataGrid>
+        <TextBlock HorizontalAlignment="Left" Margin="10,0,0,8" TextWrapping="Wrap" Text="TIP: right click on your device for a handy context menu" Width="544" Height="50" VerticalAlignment="Bottom"/>
+    </Grid>
+</Window>
