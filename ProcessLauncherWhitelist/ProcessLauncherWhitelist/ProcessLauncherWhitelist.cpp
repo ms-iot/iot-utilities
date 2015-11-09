@@ -564,6 +564,7 @@ void WriteWhiteListToRegistry()
 		if (ERROR_SUCCESS == RegSetValueEx(hKey, wcValue, 0, REG_MULTI_SZ, (LPBYTE)lpBuffer, bufferSize))
 		{
 			wprintf(L"Success - Whitelist updated\n");
+			bDirty = false;
 		}
 		else
 		{
