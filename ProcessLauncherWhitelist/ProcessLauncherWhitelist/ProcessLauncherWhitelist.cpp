@@ -19,6 +19,8 @@ void ShowMenu();
 int GetMenuSelection();
 int BuildFolderList(wstring InitialFolder);
 void DeleteItem();
+void ClearList();
+wchar_t GetUserResponse(wchar_t *wcPrompt, wchar_t *AllowedOptions);
 
 // number of items in the menu
 #define MAX_MENU_ITEMS 7
@@ -40,6 +42,8 @@ void WriteWhiteListToRegistry();
 vector<wstring> Whitelist;
 vector<wstring> FolderList;
 wstring wsRoot(L"\\");
+
+bool bDirty = false;		// has the whitelist changed?
 
 // FoundFiles is temporarily used to build a list of found files from a search criteria.
 vector<wstring> FoundFiles;
@@ -69,6 +73,14 @@ int _tmain(int argc, _TCHAR* argv[])
 		int iMenuSelection = GetMenuSelection();	// returns 'false' if "9" exit has been selected.
 		if (-1 == iMenuSelection)
 		{
+			if (bDirty)
+			{
+				wchar_t cResp=GetUserResponse(L"Do you want to save your changes (y/n)?",L"yn");
+				if (L'y' == cResp)
+				{
+					WriteWhiteListToRegistry();
+				}
+			}
 			bInMenu = false;
 			break;
 		}
@@ -88,7 +100,7 @@ int _tmain(int argc, _TCHAR* argv[])
 			DeleteItem();
 			break;
 		case 5:
-			Whitelist.clear();
+			ClearList();
 			break;
 		case 6:
 			WriteRegFile();
@@ -148,6 +160,7 @@ void SearchFolderList()
 			if (bAdd)
 			{
 				Whitelist.push_back(FoundFiles[0]);
+				bDirty = true;
 			}
 		}
 		else
@@ -182,6 +195,7 @@ void SearchFolderList()
 							{
 								Whitelist.push_back(FoundFiles[x]);
 							}
+							bDirty = true;
 							break;
 						}
 
@@ -189,6 +203,7 @@ void SearchFolderList()
 						if (iOption > 0 && iOption <= FoundFiles.size())
 						{
 							Whitelist.push_back(FoundFiles[iOption - 1]);
+							bDirty = true;
 							break;
 						}
 						else
@@ -429,6 +444,15 @@ bool IsExeName(wstring fullString)
 	}
 }
 
+void ClearList()
+{
+	if (Whitelist.size() > 0)
+	{
+		Whitelist.clear();
+		bDirty = true;
+	}
+}
+
 void DeleteItem()
 {
 	if (Whitelist.size() == 0)
@@ -455,6 +479,7 @@ void DeleteItem()
 			if (iOption > 0 && iOption <= Whitelist.size())
 			{
 				Whitelist.erase(Whitelist.begin() + iOption - 1);
+				bDirty = true;
 				break;
 			}
 		}
@@ -477,7 +502,7 @@ void WriteWhiteListToRegistry()
 			// if we didn't open the key then we are done.
 			if (ERROR_SUCCESS == RegDeleteValue(hKey, L"AllowedExecutableFilesList"))
 			{
-				wprintf(L"Whitelist is now cleared.\n");
+				wprintf(L"Cleared current whitelist.\n");
 			}
 			RegCloseKey(hKey);
 		}
@@ -603,8 +628,7 @@ void WriteRegFile()
 void AddExeToList()
 {
 	wprintf(L"Provide the name of an executable,\n");
-	wprintf(L"If the app is APPX local then just provide the .EXE name, no path needed\n");
-	wprintf(L"You can also provide a full path to a .EXE\n\n");
+	wprintf(L"You need to provide the full path to a .EXE\n");
 
 	wprintf(L"Application to add>");
 	wchar_t wcFilename[FILENAME_MAX];
@@ -634,6 +658,48 @@ void AddExeToList()
 		}
 
 		if (true == bAdd)
+		{
 			Whitelist.push_back(wcFilename);
+			bDirty = true;
+		}
 	}
+}
+
+wchar_t GetUserResponse(wchar_t *wcPrompt,wchar_t *AllowedOptions)
+{
+wchar_t wcOption[20] = { 0 };
+
+wchar_t wcRet = L' ';
+
+// make the options lower case
+wstring allowedOptions(AllowedOptions);
+transform(allowedOptions.begin(), allowedOptions.end(), allowedOptions.begin(), tolower);
+
+bool bGetInput = true;
+while (bGetInput)
+{
+	wprintf(L"%s>", wcPrompt);
+	if (NULL != _getws_s(wcOption, 20))
+	{
+		if (wcslen(wcOption) == 1)
+		{
+			// Make the user input lower case.
+			wstring wsOption(wcOption);
+			transform(wsOption.begin(), wsOption.end(), wsOption.begin(), tolower);
+
+			for (size_t x = 0;x < allowedOptions.length();x++)
+			{
+				wchar_t wcChar = allowedOptions.c_str()[x];
+				if (wsOption.c_str()[0] == wcChar)
+				{
+					wcRet = wcChar;
+					bGetInput = false;
+					break;
+				}
+			}
+		}
+	}
+}
+
+	return wcRet;
 }
