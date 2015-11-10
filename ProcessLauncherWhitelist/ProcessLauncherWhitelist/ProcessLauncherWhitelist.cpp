@@ -265,15 +265,14 @@ void GetWhitelist()
 
 	// allocate the buffer
 	wchar_t *lpValues = (wchar_t*)malloc(dwSize);
-	ZeroMemory(lpValues, dwSize);
 	// store the pointer to the allocated memory.
-
 	if (NULL == lpValues)
 	{
 		RegCloseKey(hKey);
 		return;
 	}
 
+	ZeroMemory(lpValues, dwSize);
 	// get the values.
 	if (ERROR_SUCCESS != RegQueryValueEx(hKey, wcValue, NULL, NULL, (LPBYTE)lpValues, &dwSize))
 	{
@@ -586,44 +585,51 @@ void WriteRegFile()
 
 	// start with writing "IoTWhitelist.reg", we can prompt later...
 	HANDLE hFile = CreateFile(L"IoTWhiteList.reg", GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-	wchar_t *pReg = L"Windows Registry Editor Version 5.00\r\n\r\n";
-	DWORD dwWritten = 0;
-	WriteFile(hFile, (LPVOID)pReg, sizeof(wchar_t)*wcslen(pReg), &dwWritten, NULL);
-
-	wstring wsReg(L"[HKEY_LOCAL_MACHINE\\");
-	wsReg.append(wcKey);
-	wsReg.append(L"]\r\n");
-	WriteFile(hFile, (LPVOID)wsReg.c_str(), sizeof(wchar_t)*wcslen(wsReg.c_str()), &dwWritten, NULL);
-
-	// "Value J"=hex(7):<Multi-string value data (as comma-delimited list of hexadecimal values representing UTF-16LE NUL-terminated strings)>
-	wsReg.clear();
-	wsReg.append(L"\"");
-	wsReg.append(wcValue);
-	wsReg.append(L"\"");
-	wsReg.append(L"=hex(7):");
-	WriteFile(hFile, (LPVOID)wsReg.c_str(), sizeof(wchar_t)*wcslen(wsReg.c_str()), &dwWritten, NULL);
-
-	wchar_t wcOut[20] = { 0 };
-	for (unsigned int x = 0;x < Whitelist.size();x++)
+	if (INVALID_HANDLE_VALUE != hFile)
 	{
-		const wchar_t *pString = Whitelist[x].c_str();
-		for (unsigned int t = 0;t < wcslen(pString);t++)
+		wchar_t *pReg = L"Windows Registry Editor Version 5.00\r\n\r\n";
+		DWORD dwWritten = 0;
+		WriteFile(hFile, (LPVOID)pReg, sizeof(wchar_t)*wcslen(pReg), &dwWritten, NULL);
+
+		wstring wsReg(L"[HKEY_LOCAL_MACHINE\\");
+		wsReg.append(wcKey);
+		wsReg.append(L"]\r\n");
+		WriteFile(hFile, (LPVOID)wsReg.c_str(), sizeof(wchar_t)*wcslen(wsReg.c_str()), &dwWritten, NULL);
+
+		// "Value J"=hex(7):<Multi-string value data (as comma-delimited list of hexadecimal values representing UTF-16LE NUL-terminated strings)>
+		wsReg.clear();
+		wsReg.append(L"\"");
+		wsReg.append(wcValue);
+		wsReg.append(L"\"");
+		wsReg.append(L"=hex(7):");
+		WriteFile(hFile, (LPVOID)wsReg.c_str(), sizeof(wchar_t)*wcslen(wsReg.c_str()), &dwWritten, NULL);
+
+		wchar_t wcOut[20] = { 0 };
+		for (unsigned int x = 0;x < Whitelist.size();x++)
 		{
-			wsprintf(wcOut, L"%02x,%02x,", pString[t] & 0xff, (pString[t] & 0xff00) >> 8);
+			const wchar_t *pString = Whitelist[x].c_str();
+			for (unsigned int t = 0;t < wcslen(pString);t++)
+			{
+				wsprintf(wcOut, L"%02x,%02x,", pString[t] & 0xff, (pString[t] & 0xff00) >> 8);
+				WriteFile(hFile, (LPVOID)wcOut, sizeof(wchar_t)*wcslen(wcOut), &dwWritten, NULL);
+			}
+			wsprintf(wcOut, L"00,00,");
 			WriteFile(hFile, (LPVOID)wcOut, sizeof(wchar_t)*wcslen(wcOut), &dwWritten, NULL);
 		}
-		wsprintf(wcOut, L"00,00,");
+		wsprintf(wcOut, L"00,00");
 		WriteFile(hFile, (LPVOID)wcOut, sizeof(wchar_t)*wcslen(wcOut), &dwWritten, NULL);
+
+		wsprintf(wcOut, L"\r\n");
+		WriteFile(hFile, (LPVOID)wcOut, sizeof(wchar_t)*wcslen(wcOut), &dwWritten, NULL);
+
+		CloseHandle(hFile);
+
+		wprintf(L"Registry file has been written\n");
 	}
-	wsprintf(wcOut, L"00,00");
-	WriteFile(hFile, (LPVOID)wcOut, sizeof(wchar_t)*wcslen(wcOut), &dwWritten, NULL);
-
-	wsprintf(wcOut, L"\r\n");
-	WriteFile(hFile, (LPVOID)wcOut, sizeof(wchar_t)*wcslen(wcOut), &dwWritten, NULL);
-
-	CloseHandle(hFile);
-
-	wprintf(L"Registry file has been written\n");
+	else
+	{
+		wprintf(L"Error creating registry file (%ld)\n", GetLastError());
+	}
 }
 
 void AddExeToList()
