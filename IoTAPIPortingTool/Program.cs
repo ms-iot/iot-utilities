@@ -144,7 +144,10 @@ namespace IoTAPIPortingTool
             {
                 foreach (var s in paths)
                 {
-                    var pth = Path.Combine(s, "dumpbin.exe");
+                    // some path elements may have quotation marks around them (useless, but legal)
+                    var spath=s.Trim('\"');
+
+                    var pth = Path.Combine(spath, "dumpbin.exe");
                     if (File.Exists(pth))
                     {
                         haveDeveloperPrompt = true;
