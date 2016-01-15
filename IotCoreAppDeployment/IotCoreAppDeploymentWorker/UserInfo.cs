@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Windows;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 
-namespace IotCoreAppDeploymentCs
+namespace IotCoreAppDeployment
 {
     /// <summary>
     /// WebB login info for specified DeviceName

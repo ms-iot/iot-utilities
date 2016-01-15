@@ -9,6 +9,7 @@ namespace NodeJs
     public class NodeJsProject : IProject
     {
         public String Name { get { return "Node.js Project"; } }
+        public String IdentityName { get { return "nodejs-" + PhoneIdentityGuid; } }
 
         public bool IsSourceSupported(String source)
         {
@@ -32,7 +33,6 @@ namespace NodeJs
         private String IdentityPublisher { get { return "CN=" + "MSFT" /*Environment.UserName*/; } }
         private String PropertiesPublisherDisplayName { get { return "MSFT" /*Environment.UserName*/; } }
 
-        private String IdentityName { get { return "NodejsWebServer1"; } }
         private String PhoneIdentityGuid { get { return Guid.NewGuid().ToString(); } }
         private String PropertiesDisplayName { get { return "NodejsWebServer1"; } }
 

@@ -11,7 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Net.Http;
 
-namespace IotCoreAppDeploymentCs
+namespace IotCoreAppDeployment
 {
     public class RestHelper
     {

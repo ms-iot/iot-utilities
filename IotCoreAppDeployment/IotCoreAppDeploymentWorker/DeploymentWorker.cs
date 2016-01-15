@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace IotCoreAppDeploymentCs
+namespace IotCoreAppDeployment
 {
     public class DeploymentWorker
     {
@@ -437,6 +437,10 @@ namespace IotCoreAppDeploymentCs
             System.Console.WriteLine("... Temp files cleaned up");
 
             #endregion
+
+            System.Console.WriteLine("\r\n\r\n***");
+            System.Console.WriteLine("*** PackageFullName = {0}_1.0.0.0_{1}__1w720vyc4ccym", project.IdentityName, configuration.ToString());
+            System.Console.WriteLine("***\r\n\r\n");
 
             return true;
         }

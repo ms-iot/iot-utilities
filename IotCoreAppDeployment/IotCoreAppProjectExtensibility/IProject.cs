@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 
 namespace IotCoreAppProjectExtensibility
 {
     public interface IProject
     {
         String Name { get; }
+        String IdentityName { get; }
 
         String SourceInput { set; get; }
+
 
         TargetPlatform ProcessorArchitecture { set; get; }
         SdkVersion SdkVersion { set; get; }

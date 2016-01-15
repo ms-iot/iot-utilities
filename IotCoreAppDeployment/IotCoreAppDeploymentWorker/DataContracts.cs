@@ -1,39 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.Serialization;
 
-namespace IotCoreAppDeploymentCs
+namespace IotCoreAppDeployment
 {
-    [DataContract]
-    public class InstalledPackages
-    {
-        [DataMember(Name = "InstalledPackages")]
-        public AppxPackage[] Items { get; set; }
-    }
-
-
-    [DataContract]
-    public class AppxPackage
-    {
-        [DataMember(Name = "Name")]
-        public string Name { get; set; }
-
-        [DataMember(Name = "PackageFamilyName")]
-        public string PackageFamilyName { get; set; }
-
-        [DataMember(Name = "PackageFullName")]
-        public string PackageFullName { get; set; }
-
-        [DataMember(Name = "PackageOrigin")]
-        public string PackageOrigin { get; set; }
-
-        [DataMember(Name = "PackageRelativeId")]
-        public string PackageRelativeId { get; set; }
-    }
-
     [DataContract]
     public class DeploymentState
     {

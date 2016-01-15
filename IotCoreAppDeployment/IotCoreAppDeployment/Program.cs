@@ -1,4 +1,4 @@
-﻿namespace IotCoreAppDeploymentCs
+﻿namespace IotCoreAppDeployment
 {
     class Program
     {

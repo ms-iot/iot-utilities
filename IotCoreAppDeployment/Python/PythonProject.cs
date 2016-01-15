@@ -9,6 +9,7 @@ namespace Python
     public class PythonProject : IProject
     {
         public String Name { get { return "Python Project"; } }
+        public String IdentityName { get { return "python-" + PhoneIdentityGuid; } }
 
         public bool IsSourceSupported(String source)
         {
@@ -32,7 +33,6 @@ namespace Python
         private String IdentityPublisher { get { return "CN=" + "MSFT" /*Environment.UserName*/; } }
         private String PropertiesPublisherDisplayName { get { return "MSFT" /*Environment.UserName*/; } }
 
-        private String IdentityName { get { return "PythonBackgroundApplication1"; } }
         private String PhoneIdentityGuid { get { return Guid.NewGuid().ToString(); } }
         private String PropertiesDisplayName { get { return "PythonBackgroundApplication1"; } }
 
