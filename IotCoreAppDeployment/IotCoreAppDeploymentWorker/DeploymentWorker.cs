@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,26 +13,102 @@ namespace IotCoreAppDeployment
 {
     public class DeploymentWorker
     {
+        #region Define arguments
+        private class ArgumentHelper
+        {
+            public Regex ArgumentMatcher { get; set; }
+            public Func<DeploymentWorker, String[], int, int> Handler { get; set; }
+            public String HelpString { get; set; }
 
-        private Regex sourceRegex = new Regex(@"(^-source)", RegexOptions.IgnoreCase);
+            public ArgumentHelper(String argName, String helpMsg)
+            {
+                ArgumentMatcher = new Regex(@"(^-" + argName + ")", RegexOptions.IgnoreCase);
+                HelpString = "-" + argName + " " + helpMsg;
+            }
+            public ArgumentHelper(String[] argNames, String helpMsg)
+            {
+                StringBuilder args = new StringBuilder();
+                for (int i = 0; i<argNames.Length; i++)
+                {
+                    if (i != 0) args.Append("|");
+                    args.Append(argNames[i]);
+                }
+                ArgumentMatcher = new Regex(@"(^" + args.ToString() + ")", RegexOptions.IgnoreCase);
+                HelpString = args.ToString() + " " + helpMsg;
+            }
+        }
 
-        private Regex dependencySdkRegex = new Regex(@"(^-sdk)", RegexOptions.IgnoreCase);
-        private Regex dependencyConfigRegex = new Regex(@"(^-config)", RegexOptions.IgnoreCase);
-
-        private Regex targetNameRegex = new Regex(@"(^-targetname)", RegexOptions.IgnoreCase);
-        private Regex targetTypeRegex = new Regex(@"(^-targettype)", RegexOptions.IgnoreCase);
-        private Regex targetUserRegex = new Regex(@"(^-targetuser)", RegexOptions.IgnoreCase);
-        private Regex targetPasswordRegex = new Regex(@"(^-targetpassword)", RegexOptions.IgnoreCase);
-
-        private Regex makeAppxRegex = new Regex(@"(^-makeappx)", RegexOptions.IgnoreCase);
-        private Regex signToolRegex = new Regex(@"(^-signtool)", RegexOptions.IgnoreCase);
-
-        private Regex helpRegex = new Regex(@"(^-h|-help|\?$)", RegexOptions.IgnoreCase);
+        private List<ArgumentHelper> argumentHelper = new List<ArgumentHelper>() {
+            new ArgumentHelper("source", "(source input)") {
+                Handler = (worker, args, index) => { worker.source = args[index + 1]; return index+2; },
+            },
+            new ArgumentHelper("sdk", "(SDK version) {if nothing is provided, 10.0.10586.0 is the default}") {
+                Handler = (worker, args, index) => {
+                    switch (args[index+1])
+                    {
+                        case "10.0.10586.0": worker.sdk = SdkVersion.SDK_10_10586_0; break;
+                        default:
+                            System.Console.WriteLine("Error: suported dependency sdks are: 10.0.586.0");
+                            return -1;
+                    }
+                    return index+2;
+                },
+            },
+            new ArgumentHelper("config", "[Debug|Release] {if nothing is provided, Debug is the default}") {
+                Handler = (worker, args, index) => {
+                    switch (args[index+1])
+                    {
+                        case "DEBUG": worker.configuration = DependencyConfiguration.Debug; break;
+                        case "RELEASE": worker.configuration = DependencyConfiguration.Release; break;
+                        default:
+                            System.Console.WriteLine("Error: suported dependency configurations are: Debug | Release");
+                            return -1;
+                    }
+                    return index+2;
+                },
+            },
+            new ArgumentHelper("targetname", "(IoT Core device name or IP address)") {
+                Handler = (worker, args, index) => { worker.targetName = args[index+1]; return index+2; },
+            },
+            new ArgumentHelper("targettype", "[ARM|X86] {if nothing is provided, ARM is the default}") {
+                Handler = (worker, args, index) => {
+                    switch (args[index+1])
+                    {
+                        case "arm": worker.targetType = TargetPlatform.ARM; break;
+                        case "x86": worker.targetType = TargetPlatform.X86; break;
+                        default:
+                            System.Console.WriteLine("Error: suported target types are ARM or X86.");
+                            return -1;
+                    }
+                    return index+2;
+                },
+            },
+            new ArgumentHelper("targetuser", "(IoT Core device username) {if nothing is provided, DefaultAccount is the default}") {
+                Handler = (worker, args, index) => { worker.credentials.UserName = args[index+1]; return index+2; },
+            },
+            new ArgumentHelper("targetpassword", "(IoT Core device user password) {if nothing is provided, p@ssw0rd is the default}") {
+                Handler = (worker, args, index) => { worker.credentials.Password = args[index+1]; return index+2; },
+            },
+            new ArgumentHelper("makeappx", "(MakeAppx.exe full path) {if nothing is provided, default Windows SDK installation assumed}") {
+                Handler = (worker, args, index) => { worker.makeAppxPath = args[index+1]; return index+2; },
+            },
+            new ArgumentHelper("signtool", "(SignTool.exe full path) {if nothing is provided, default Windows SDK installation assumed}") {
+                Handler = (worker, args, index) => { worker.signToolPath = args[index+1]; return index+2; },
+            },
+            new ArgumentHelper("output", "(full path to output APPX to) {if nothing is provided, files will not be saved}") {
+                Handler = (worker, args, index) => { worker.copyOutputToFolder = args[index+1]; return index+2; },
+            },
+            new ArgumentHelper(new string[] { "-help", "-?", "-h" }, "Display usage") {
+                Handler = (worker, args, index) => { worker.doUsage = true; return -1; },
+            },
+        };
+        #endregion
 
         private String source = "";
         private String targetName = "";
         private String makeAppxPath = null;
         private String signToolPath = null;
+        private String copyOutputToFolder = null;
         private TargetPlatform targetType = TargetPlatform.ARM;
         private SdkVersion sdk = SdkVersion.SDK_10_10586_0;
         private DependencyConfiguration configuration = DependencyConfiguration.Debug;
@@ -58,72 +135,21 @@ namespace IotCoreAppDeployment
 	        }
 
             doUsage = false;
-	        bool fCommand = false;
             int current = 0;
 	        while (current < argv.Length)
 	        {
-		        if (!fCommand && helpRegex.IsMatch(argv[current]))
-		        {
-			        doUsage = true;
-			        break;
-		        }
-		        else if (!fCommand && sourceRegex.IsMatch(argv[current]))
-		        {
-			        source = argv[++current];
-		        }
-                else if (!fCommand && targetNameRegex.IsMatch(argv[current]))
+                foreach (var helper in argumentHelper)
                 {
-                    targetName = argv[++current];
-                }
-                else if (!fCommand && targetTypeRegex.IsMatch(argv[current]))
-		        {
-                    switch (argv[++current].ToLower())
+                    if (helper.ArgumentMatcher.IsMatch(argv[current]))
                     {
-                        case "arm": targetType = TargetPlatform.ARM; break;
-                        case "x86": targetType = TargetPlatform.X86; break;
-                        default:
-                            System.Console.WriteLine("Error: suported target types are ARM or X86.");
+                        current = helper.Handler(this, argv, current);
+                        if (current == -1)
+                        {
                             return RETURN_CODE.ERROR_BAD_ARGUMENT;
+                        }
+                        break;
                     }
                 }
-		        else if (!fCommand && dependencySdkRegex.IsMatch(argv[current]))
-		        {
-                    switch (argv[++current])
-                    {
-                        case "10.0.10586.0": sdk = SdkVersion.SDK_10_10586_0; break;
-                        default:
-                            System.Console.WriteLine("Error: suported dependency sdks are: 10.0.586.0");
-                            return RETURN_CODE.ERROR_BAD_ARGUMENT;
-                    }
-		        }
-                else if (!fCommand && dependencyConfigRegex.IsMatch(argv[current]))
-                {
-                    switch (argv[++current].ToUpper())
-                    {
-                        case "DEBUG": configuration = DependencyConfiguration.Debug; break;
-                        case "RELEASE": configuration = DependencyConfiguration.Release; break;
-                        default:
-                            System.Console.WriteLine("Error: suported dependency configurations are: Debug | Release");
-                            return RETURN_CODE.ERROR_BAD_ARGUMENT;
-                    }
-                }
-                else if (!fCommand && targetUserRegex.IsMatch(argv[current]))
-                {
-                    credentials.UserName = argv[++current];
-                }
-                else if (!fCommand && targetPasswordRegex.IsMatch(argv[current]))
-                {
-                    credentials.Password = argv[++current];
-                }
-                else if (!fCommand && makeAppxRegex.IsMatch(argv[current]))
-                {
-                    makeAppxPath = argv[++current];
-                }
-                else if (!fCommand && signToolRegex.IsMatch(argv[current]))
-                {
-                    signToolPath = argv[++current];
-                }
-                ++current;
 	        }
 	        return RETURN_CODE.SUCCESS;
         }
@@ -133,16 +159,10 @@ namespace IotCoreAppDeployment
             String appName = "IotCoreAppDeployment.exe";
             System.Console.WriteLine("Usage:", appName);
             System.Console.WriteLine("  {0} arguments:", appName);
-            System.Console.WriteLine("      -source (source input)");
-            System.Console.WriteLine("      -targetname (IoT Core device name or IP address)");
-            System.Console.WriteLine("      -targettype [ARM|X86] {if nothing is provided, ARM is the default}");
-            System.Console.WriteLine("      -targetuser (IoT Core device username) {if nothing is provided, DefaultAccount is the default}");
-            System.Console.WriteLine("      -targetpassword (IoT Core device user password) {if nothing is provided, p@ssw0rd is the default}");
-            System.Console.WriteLine("      -sdk (SDK version) {if nothing is provided, 10.0.10586.0 is the default}");
-            System.Console.WriteLine("      -config [Debug|Release] {if nothing is provided, Debug is the default}");
-            System.Console.WriteLine("      -makeAppxPath (MakeAppx.exe full path) {if nothing is provided, default Windows SDK installation assumed}");
-            System.Console.WriteLine("      -signToolPath (SignTool.exe full path) {if nothing is provided, default Windows SDK installation assumed}");
-            System.Console.WriteLine("      [-help|-?|-h]");
+            foreach (var helper in argumentHelper)
+            {
+                System.Console.WriteLine("    " + helper.HelpString);
+            }
             System.Console.WriteLine("");
             System.Console.WriteLine("Example:");
             System.Console.WriteLine("  {0} s -source app.py -targetname 1.2.3.4 -targettype ARM -sdk 10.0.10586.0", appName);
@@ -151,14 +171,6 @@ namespace IotCoreAppDeployment
 
         async Task<bool> CreateAndDeployApp()
         {
-            //int sleepTime = 0;
-            //while (sleepTime < 10000)
-            //{
-            //    Thread.Sleep(1000);
-            //    sleepTime += 1000;
-            //    System.Console.WriteLine("... Waiting for debugger attach.");
-            //}
-
             #region Find Template and Project from available providers
 
             // Ensure that the required Tools (MakeAppx and SignTool) can be found
@@ -218,7 +230,13 @@ namespace IotCoreAppDeployment
 
             #region Create APPX
             String outputFolder = Path.GetTempPath() + Path.GetRandomFileName();
-            String outputAppx = Path.GetTempPath() + Path.GetRandomFileName() + ".appx";
+            String artifactsFolder = outputFolder + @"\output";
+            String appxFilename = project.IdentityName + ".appx";
+            String cerFilename = project.IdentityName + ".cer";
+            String outputAppx = artifactsFolder + @"\" + appxFilename;
+            String outputCer = artifactsFolder + @"\" + cerFilename;
+
+            Directory.CreateDirectory(artifactsFolder);
 
             // 1. Copy generic base template files
             #region Set up base template contents
@@ -308,7 +326,9 @@ namespace IotCoreAppDeployment
                 makeAppxLogStream.WriteLine("\n\n\n\nFull Output:");
                 makeAppxLogStream.Write(makeAppxOutput);
             }
-            System.Console.WriteLine("... APPX file created: {0} [logfile: {1}]", outputAppx, makeAppxLogfile);
+            System.Console.WriteLine("... APPX file created");
+            System.Console.WriteLine("        {0}", outputAppx);
+            System.Console.WriteLine("        logfile: {0}", makeAppxLogfile);
 
             #endregion
 
@@ -346,12 +366,13 @@ namespace IotCoreAppDeployment
                 signToolLogStream.WriteLine("\n\n\n\nFull Output:");
                 signToolLogStream.Write(signToolOutput);
             }
-            System.Console.WriteLine("... APPX file signed with PFX [logfile: {0}]", signToolLogfile);
+            System.Console.WriteLine("... APPX file signed with PFX", signToolLogfile);
+            System.Console.WriteLine("        logfile: {0}", signToolLogfile);
+
             #endregion
 
             // 7. Get CER file from shared PFX
             #region Create CER file from PFX
-            String outputCer = outputAppx.Replace(".appx", ".cer");
             String getCertArgsFormat = "\"Get-PfxCertificate -FilePath \'{0}\' | Export-Certificate -FilePath \'{1}\' -Type CERT\"";
             String getCertArgs = String.Format(getCertArgsFormat, pfxFile, outputCer);
             Process powershellProcess = new Process();
@@ -383,7 +404,9 @@ namespace IotCoreAppDeployment
                 powershellLogStream.WriteLine("\n\n\n\nFull Output:");
                 powershellLogStream.Write(powershellOutput);
             }
-            System.Console.WriteLine("... CER file generated from PFX: {0} [logfile: {1}]", outputCer, signToolLogfile);
+            System.Console.WriteLine("... CER file generated from PFX");
+            System.Console.WriteLine("        {0}", outputCer);
+            System.Console.WriteLine("        logfile: {0}", signToolLogfile);
             #endregion
 
             // 8. Copy appropriate Dependencies from IProject
@@ -392,7 +415,7 @@ namespace IotCoreAppDeployment
             var dependencies = project.GetDependencies(supportedProjects.DependencyProviders);
             foreach (var dependency in dependencies)
             {
-                dependency.Apply(outputFolder);
+                dependency.Apply(artifactsFolder);
             }
             System.Console.WriteLine("... dependencies copied into place");
 
@@ -408,7 +431,7 @@ namespace IotCoreAppDeployment
             files.Add(new FileInfo(outputCer));
             foreach (var dependency in dependencies)
             {
-                files.Add(new FileInfo(outputFolder + @"\" + dependency.AppxRelativePath));
+                files.Add(new FileInfo(artifactsFolder + @"\" + dependency.AppxRelativePath));
             }
             #endregion
 
@@ -430,10 +453,28 @@ namespace IotCoreAppDeployment
 
             #endregion
 
+            #region Copy artifacts if requested
+
+            if (null != copyOutputToFolder)
+            {
+                if (Directory.Exists(copyOutputToFolder))
+                {
+                    Directory.Delete(copyOutputToFolder, true);
+                }
+                Directory.CreateDirectory(copyOutputToFolder);
+                File.Copy(outputAppx, copyOutputToFolder + @"\" + appxFilename);
+                File.Copy(outputCer, copyOutputToFolder + @"\" + cerFilename);
+                foreach (var dependency in dependencies)
+                {
+                    dependency.Apply(copyOutputToFolder);
+                }
+            }
+
+            #endregion
+
             #region Cleanup
 
             Directory.Delete(outputFolder, true);
-            File.Delete(outputAppx);
             System.Console.WriteLine("... Temp files cleaned up");
 
             #endregion

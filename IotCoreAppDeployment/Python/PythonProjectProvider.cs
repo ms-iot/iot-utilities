@@ -1,12 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using IotCoreAppProjectExtensibility;
+using System.Collections.Generic;
 
 namespace Python
 {
-    public class PythonProjectProvider : IotCoreAppProjectExtensibility.IProjectProvider
+    public class PythonProjectProvider : IProjectProvider
     {
-        public List<IotCoreAppProjectExtensibility.IProject> GetSupportedProjects()
+        public List<IProject> GetSupportedProjects()
         {
-            var supportedProjects = new List<IotCoreAppProjectExtensibility.IProject>();
+            var supportedProjects = new List<IProject>();
             supportedProjects.Add(new PythonProject());
             return supportedProjects;
         }
