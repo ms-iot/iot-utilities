@@ -104,6 +104,7 @@ namespace IotCoreAppDeployment
         };
         #endregion
 
+        private String outputFolder = "";
         private String source = "";
         private String targetName = "";
         private String makeAppxPath = null;
@@ -229,7 +230,8 @@ namespace IotCoreAppDeployment
             #endregion
 
             #region Create APPX
-            String outputFolder = Path.GetTempPath() + Path.GetRandomFileName();
+            outputFolder = Path.GetTempPath() + Path.GetRandomFileName();
+
             String artifactsFolder = outputFolder + @"\output";
             String appxFilename = project.IdentityName + ".appx";
             String cerFilename = project.IdentityName + ".cer";
@@ -481,18 +483,24 @@ namespace IotCoreAppDeployment
 
             #endregion
 
-            #region Cleanup
-
-            Directory.Delete(outputFolder, true);
-            System.Console.WriteLine("... Temp files cleaned up");
-
-            #endregion
 
             System.Console.WriteLine("\r\n\r\n***");
             System.Console.WriteLine("*** PackageFullName = {0}_1.0.0.0_{1}__1w720vyc4ccym", project.IdentityName, configuration.ToString());
             System.Console.WriteLine("***\r\n\r\n");
 
             return true;
+        }
+
+        ~DeploymentWorker()
+        {
+            #region Cleanup
+
+            if (Directory.Exists(outputFolder))
+            {
+                Directory.Delete(outputFolder, true);
+            }
+
+            #endregion
         }
 
         public static async Task<bool> Execute(string[] args)
