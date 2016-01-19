@@ -51,7 +51,18 @@
       <Name>IotCoreAppProjectExtensibility</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\ARM\PythonHome\DLLs\pyexpat.pyd" />
+    <EmbeddedResource Include="Resources\ARM\PythonHome\DLLs\select.pyd" />
+    <EmbeddedResource Include="Resources\ARM\PythonHome\DLLs\unicodedata.pyd" />
+    <EmbeddedResource Include="Resources\ARM\PythonHome\DLLs\_bz2.pyd" />
+    <EmbeddedResource Include="Resources\ARM\PythonHome\DLLs\_ctypes.pyd" />
+    <EmbeddedResource Include="Resources\ARM\PythonHome\DLLs\_elementtree.pyd" />
+    <EmbeddedResource Include="Resources\ARM\PythonHome\DLLs\_ptvsdhelper.pyd" />
+    <EmbeddedResource Include="Resources\ARM\PythonHome\DLLs\_socket.pyd" />
+    <EmbeddedResource Include="Resources\ARM\PythonHome\DLLs\_ssl.pyd" />
+    <EmbeddedResource Include="Resources\ARM\PythonHome\lib.zip" />
+  </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\ARM\ptvsd\attach_server.py" />
     <EmbeddedResource Include="Resources\ARM\ptvsd\visualstudio_py_debugger.py" />
@@ -59,28 +70,6 @@
     <EmbeddedResource Include="Resources\ARM\ptvsd\visualstudio_py_util.py" />
     <EmbeddedResource Include="Resources\ARM\ptvsd\__init__.py" />
     <EmbeddedResource Include="Resources\ARM\ptvsd\__main__.py" />
-    <EmbeddedResource Include="Resources\ARM\Python35_d.dll" />
-    <EmbeddedResource Include="Resources\ARM\pyuwpbackgroundservice.dll" />
-    <EmbeddedResource Include="Resources\ARM\StartupTask.py" />
-    <EmbeddedResource Include="Resources\ARM\visualstudio_py_debugger.py" />
-    <EmbeddedResource Include="Resources\ARM\visualstudio_py_launcher.py" />
-    <EmbeddedResource Include="Resources\ARM\visualstudio_py_remote_launcher.py" />
-    <EmbeddedResource Include="Resources\ARM\visualstudio_py_repl.py" />
-    <EmbeddedResource Include="Resources\ARM\visualstudio_py_testlauncher.py" />
-    <EmbeddedResource Include="Resources\ARM\visualstudio_py_util.py" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\ARM\lib.zip" />
-    <EmbeddedResource Include="Resources\ARM\pyexpat_d.pyd" />
-    <EmbeddedResource Include="Resources\ARM\select_d.pyd" />
-    <EmbeddedResource Include="Resources\ARM\startupinfo.json" />
-    <EmbeddedResource Include="Resources\ARM\unicodedata_d.pyd" />
-    <EmbeddedResource Include="Resources\ARM\_bz2_d.pyd" />
-    <EmbeddedResource Include="Resources\ARM\_ctypes_d.pyd" />
-    <EmbeddedResource Include="Resources\ARM\_elementtree_d.pyd" />
-    <EmbeddedResource Include="Resources\ARM\_ptvsdhelper_d.pyd" />
-    <EmbeddedResource Include="Resources\ARM\_socket_d.pyd" />
-    <EmbeddedResource Include="Resources\ARM\_ssl_d.pyd" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\x86\ptvsd\attach_server.py" />
@@ -91,28 +80,48 @@
     <EmbeddedResource Include="Resources\x86\ptvsd\__main__.py" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\x86\lib.zip" />
-    <EmbeddedResource Include="Resources\x86\pyexpat_d.pyd" />
-    <EmbeddedResource Include="Resources\x86\select_d.pyd" />
     <EmbeddedResource Include="Resources\x86\startupinfo.json" />
-    <EmbeddedResource Include="Resources\x86\unicodedata_d.pyd" />
-    <EmbeddedResource Include="Resources\x86\_bz2_d.pyd" />
-    <EmbeddedResource Include="Resources\x86\_ctypes_d.pyd" />
-    <EmbeddedResource Include="Resources\x86\_elementtree_d.pyd" />
-    <EmbeddedResource Include="Resources\x86\_ptvsdhelper_d.pyd" />
-    <EmbeddedResource Include="Resources\x86\_socket_d.pyd" />
-    <EmbeddedResource Include="Resources\x86\_ssl_d.pyd" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\x86\Python35_d.dll" />
     <EmbeddedResource Include="Resources\x86\pyuwpbackgroundservice.dll" />
-    <EmbeddedResource Include="Resources\x86\StartupTask.py" />
     <EmbeddedResource Include="Resources\x86\visualstudio_py_debugger.py" />
     <EmbeddedResource Include="Resources\x86\visualstudio_py_launcher.py" />
     <EmbeddedResource Include="Resources\x86\visualstudio_py_remote_launcher.py" />
     <EmbeddedResource Include="Resources\x86\visualstudio_py_repl.py" />
     <EmbeddedResource Include="Resources\x86\visualstudio_py_testlauncher.py" />
     <EmbeddedResource Include="Resources\x86\visualstudio_py_util.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\ARM\Python35.dll" />
+    <EmbeddedResource Include="Resources\ARM\pyuwpbackgroundservice.dll" />
+    <EmbeddedResource Include="Resources\ARM\visualstudio_py_debugger.py" />
+    <EmbeddedResource Include="Resources\ARM\visualstudio_py_launcher.py" />
+    <EmbeddedResource Include="Resources\ARM\visualstudio_py_remote_launcher.py" />
+    <EmbeddedResource Include="Resources\ARM\visualstudio_py_repl.py" />
+    <EmbeddedResource Include="Resources\ARM\visualstudio_py_testlauncher.py" />
+    <EmbeddedResource Include="Resources\ARM\visualstudio_py_util.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\ARM\resources.pri" />
+    <EmbeddedResource Include="Resources\ARM\startupinfo.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\x86\Python35.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\x86\resources.pri" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\x86\PythonHome\DLLs\pyexpat.pyd" />
+    <EmbeddedResource Include="Resources\x86\PythonHome\DLLs\select.pyd" />
+    <EmbeddedResource Include="Resources\x86\PythonHome\DLLs\unicodedata.pyd" />
+    <EmbeddedResource Include="Resources\x86\PythonHome\DLLs\_bz2.pyd" />
+    <EmbeddedResource Include="Resources\x86\PythonHome\DLLs\_ctypes.pyd" />
+    <EmbeddedResource Include="Resources\x86\PythonHome\DLLs\_elementtree.pyd" />
+    <EmbeddedResource Include="Resources\x86\PythonHome\DLLs\_ptvsdhelper.pyd" />
+    <EmbeddedResource Include="Resources\x86\PythonHome\DLLs\_socket.pyd" />
+    <EmbeddedResource Include="Resources\x86\PythonHome\DLLs\_ssl.pyd" />
+    <EmbeddedResource Include="Resources\x86\PythonHome\lib.zip" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

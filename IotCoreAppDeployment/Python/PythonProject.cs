@@ -111,25 +111,25 @@ namespace Python
         public List<FileStreamInfo> GetAppxContents()
         {
             var contents = new List<FileStreamInfo>();
-            contents.Add(FileFromResources(@"lib.zip"));
-            contents.Add(FileFromResources(@"pyexpat_d.pyd"));
-            contents.Add(FileFromResources(@"Python35_d.dll"));
+            contents.Add(FileFromResources(@"Python35.dll"));
             contents.Add(FileFromResources(@"pyuwpbackgroundservice.dll"));
-            contents.Add(FileFromResources(@"select_d.pyd"));
             contents.Add(FileFromResources(@"startupinfo.json"));
-            contents.Add(FileFromResources(@"unicodedata_d.pyd"));
             contents.Add(FileFromResources(@"visualstudio_py_debugger.py"));
             contents.Add(FileFromResources(@"visualstudio_py_launcher.py"));
             contents.Add(FileFromResources(@"visualstudio_py_remote_launcher.py"));
             contents.Add(FileFromResources(@"visualstudio_py_repl.py"));
             contents.Add(FileFromResources(@"visualstudio_py_testlauncher.py"));
             contents.Add(FileFromResources(@"visualstudio_py_util.py"));
-            contents.Add(FileFromResources(@"_bz2_d.pyd"));
-            contents.Add(FileFromResources(@"_ctypes_d.pyd"));
-            contents.Add(FileFromResources(@"_elementtree_d.pyd"));
-            contents.Add(FileFromResources(@"_ptvsdhelper_d.pyd"));
-            contents.Add(FileFromResources(@"_socket_d.pyd"));
-            contents.Add(FileFromResources(@"_ssl_d.pyd"));
+            contents.Add(FileFromResources(@"PythonHome\DLLs\_bz2.pyd"));
+            contents.Add(FileFromResources(@"PythonHome\DLLs\_ctypes.pyd"));
+            contents.Add(FileFromResources(@"PythonHome\DLLs\_elementtree.pyd"));
+            contents.Add(FileFromResources(@"PythonHome\DLLs\_ptvsdhelper.pyd"));
+            contents.Add(FileFromResources(@"PythonHome\DLLs\_socket.pyd"));
+            contents.Add(FileFromResources(@"PythonHome\DLLs\_ssl.pyd"));
+            contents.Add(FileFromResources(@"PythonHome\DLLs\pyexpat.pyd"));
+            contents.Add(FileFromResources(@"PythonHome\DLLs\select.pyd"));
+            contents.Add(FileFromResources(@"PythonHome\DLLs\unicodedata.pyd"));
+            contents.Add(FileFromResources(@"PythonHome\lib.zip"));
             contents.Add(FileFromResources(@"ptvsd\attach_server.py"));
             contents.Add(FileFromResources(@"ptvsd\visualstudio_py_debugger.py"));
             contents.Add(FileFromResources(@"ptvsd\visualstudio_py_repl.py"));
@@ -144,18 +144,18 @@ namespace Python
         public void GetAppxMapContents(List<String> resourceMetadata, List<String> files, String outputFolder)
         {
             files.Add("\"" + outputFolder + "\\StartupTask.py\" \"StartupTask.py\"");
-            files.Add("\"" + outputFolder + "\\pyexpat_d.pyd\" \"pyexpat_d.pyd\"");
-            files.Add("\"" + outputFolder + "\\select_d.pyd\" \"select_d.pyd\"");
-            files.Add("\"" + outputFolder + "\\unicodedata_d.pyd\" \"unicodedata_d.pyd\"");
-            files.Add("\"" + outputFolder + "\\_bz2_d.pyd\" \"_bz2_d.pyd\"");
-            files.Add("\"" + outputFolder + "\\_ctypes_d.pyd\" \"_ctypes_d.pyd\"");
-            files.Add("\"" + outputFolder + "\\_elementtree_d.pyd\" \"_elementtree_d.pyd\"");
-            files.Add("\"" + outputFolder + "\\_ptvsdhelper_d.pyd\" \"_ptvsdhelper_d.pyd\"");
-            files.Add("\"" + outputFolder + "\\_socket_d.pyd\" \"_socket_d.pyd\"");
-            files.Add("\"" + outputFolder + "\\_ssl_d.pyd\" \"_ssl_d.pyd\"");
-            files.Add("\"" + outputFolder + "\\Python35_d.dll\" \"Python35_d.dll\"");
+            files.Add("\"" + outputFolder + "\\PythonHome\\DLLs\\pyexpat.pyd\" \"PythonHome\\DLLs\\pyexpat.pyd\"");
+            files.Add("\"" + outputFolder + "\\PythonHome\\DLLs\\select.pyd\" \"PythonHome\\DLLs\\select.pyd\"");
+            files.Add("\"" + outputFolder + "\\PythonHome\\DLLs\\unicodedata.pyd\" \"PythonHome\\DLLs\\unicodedata.pyd\"");
+            files.Add("\"" + outputFolder + "\\PythonHome\\DLLs\\_bz2.pyd\" \"PythonHome\\DLLs\\_bz2.pyd\"");
+            files.Add("\"" + outputFolder + "\\PythonHome\\DLLs\\_ctypes.pyd\" \"PythonHome\\DLLs\\_ctypes.pyd\"");
+            files.Add("\"" + outputFolder + "\\PythonHome\\DLLs\\_elementtree.pyd\" \"PythonHome\\DLLs\\_elementtree.pyd\"");
+            files.Add("\"" + outputFolder + "\\PythonHome\\DLLs\\_ptvsdhelper.pyd\" \"PythonHome\\DLLs\\_ptvsdhelper.pyd\"");
+            files.Add("\"" + outputFolder + "\\PythonHome\\DLLs\\_socket.pyd\" \"PythonHome\\DLLs\\_socket.pyd\"");
+            files.Add("\"" + outputFolder + "\\PythonHome\\DLLs\\_ssl.pyd\" \"PythonHome\\DLLs\\_ssl.pyd\"");
+            files.Add("\"" + outputFolder + "\\Python35.dll\" \"Python35.dll\"");
             files.Add("\"" + outputFolder + "\\pyuwpbackgroundservice.dll\" \"pyuwpbackgroundservice.dll\"");
-            files.Add("\"" + outputFolder + "\\lib.zip\" \"lib.zip\"");
+            files.Add("\"" + outputFolder + "\\PythonHome\\lib.zip\" \"PythonHome\\lib.zip\"");
             files.Add("\"" + outputFolder + "\\startupinfo.json\" \"startupinfo.json\"");
             files.Add("\"" + outputFolder + "\\visualstudio_py_debugger.py\" \"visualstudio_py_debugger.py\"");
             files.Add("\"" + outputFolder + "\\visualstudio_py_launcher.py\" \"visualstudio_py_launcher.py\"");
