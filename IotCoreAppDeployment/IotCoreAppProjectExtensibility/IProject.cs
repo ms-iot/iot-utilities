@@ -18,6 +18,7 @@ namespace IotCoreAppProjectExtensibility
         bool IsSourceSupported(String source);
         IBaseProjectTypes GetBaseProjectType();
 
+        List<IContentChange> GetCapabilities();
         List<IContentChange> GetAppxContentChanges();
         void GetAppxMapContents(List<String> resourceMetadata, List<String> files, String outputFolder);
         List<FileStreamInfo> GetAppxContents();

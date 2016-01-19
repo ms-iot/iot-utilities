@@ -33,7 +33,18 @@ namespace NodeJs
         private String IdentityPublisher { get { return "CN=" + "MSFT" /*Environment.UserName*/; } }
         private String PropertiesPublisherDisplayName { get { return "MSFT" /*Environment.UserName*/; } }
 
-        private String PhoneIdentityGuid { get { return Guid.NewGuid().ToString(); } }
+        private String _PhoneIdentityGuid = null;
+        private String PhoneIdentityGuid
+        {
+            get
+            {
+                if (_PhoneIdentityGuid == null)
+                {
+                    _PhoneIdentityGuid = Guid.NewGuid().ToString();
+                }
+                return _PhoneIdentityGuid;
+            }
+        }
         private String PropertiesDisplayName { get { return "NodejsWebServer1"; } }
 
         private String DisplayName { get { return "nodeuwp"; } }
@@ -64,6 +75,18 @@ namespace NodeJs
             changes.Add(new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Applications/std:Application/std:Extensions/std:Extension/@EntryPoint", Value = ExtensionEntryPoint });
             changes.Add(new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Extensions/std:Extension/std:InProcessServer/std:Path", IsAttribute = false, Value = InProcessServerPath });
             changes.Add(new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Extensions/std:Extension/std:InProcessServer/std:ActivatableClass/@ActivatableClassId", Value = InProcessServerActivatableClassId });
+            return changes;
+        }
+
+        public List<IContentChange> GetCapabilities()
+        {
+            var changes = new List<IContentChange>();
+
+            changes.Add(new AppxManifestCapabilityAddition() { CapabilityName = "internetClientServer" });
+            changes.Add(new AppxManifestCapabilityAddition() { CapabilityName = "privateNetworkClientServer" });
+            changes.Add(new AppxManifestCapabilityAddition() { CapabilityName = "systemManagement", CapabilityNamespace = "iot" });
+            changes.Add(new AppxManifestCapabilityAddition() { Capability = "DeviceCapability", CapabilityName = "serialcommunication", DeviceId = "any", FunctionType="name:serialPort" });
+
             return changes;
         }
 
