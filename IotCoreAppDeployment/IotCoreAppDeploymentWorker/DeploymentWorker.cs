@@ -1,4 +1,5 @@
 ﻿using IotCoreAppProjectExtensibility;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -48,7 +49,7 @@ namespace IotCoreAppDeployment
                     {
                         case "10.0.10586.0": worker.sdk = SdkVersion.SDK_10_10586_0; break;
                         default:
-                            System.Console.WriteLine("Error: suported dependency sdks are: 10.0.586.0");
+                            worker.OutputMessage("Error: suported dependency sdks are: 10.0.10586.0");
                             return -1;
                     }
                     return index+2;
@@ -61,7 +62,7 @@ namespace IotCoreAppDeployment
                         case "DEBUG": worker.configuration = DependencyConfiguration.Debug; break;
                         case "RELEASE": worker.configuration = DependencyConfiguration.Release; break;
                         default:
-                            System.Console.WriteLine("Error: suported dependency configurations are: Debug | Release");
+                            worker.OutputMessage("Error: suported dependency configurations are: Debug | Release");
                             return -1;
                     }
                     return index+2;
@@ -77,7 +78,7 @@ namespace IotCoreAppDeployment
                         case "arm": worker.targetType = TargetPlatform.ARM; break;
                         case "x86": worker.targetType = TargetPlatform.X86; break;
                         default:
-                            System.Console.WriteLine("Error: suported target types are ARM or X86.");
+                            worker.OutputMessage("Error: suported target types are ARM or X86.");
                             return -1;
                     }
                     return index+2;
@@ -95,6 +96,9 @@ namespace IotCoreAppDeployment
             new ArgumentHelper("signtool", "(SignTool.exe full path) {if nothing is provided, default Windows SDK installation assumed}") {
                 Handler = (worker, args, index) => { worker.signToolPath = args[index+1]; return index+2; },
             },
+            new ArgumentHelper("powershell", "(PowerShell.exe full path) {if nothing is provided, the registry is queried}") {
+                Handler = (worker, args, index) => { worker.powershellPath = args[index+1]; return index+2; },
+            },
             new ArgumentHelper("output", "(full path to output APPX to) {if nothing is provided, files will not be saved}") {
                 Handler = (worker, args, index) => { worker.copyOutputToFolder = args[index+1]; return index+2; },
             },
@@ -109,10 +113,19 @@ namespace IotCoreAppDeployment
         private String targetName = "";
         private String makeAppxPath = null;
         private String signToolPath = null;
+        private String powershellPath = null;
         private String copyOutputToFolder = null;
         private TargetPlatform targetType = TargetPlatform.ARM;
         private SdkVersion sdk = SdkVersion.SDK_10_10586_0;
         private DependencyConfiguration configuration = DependencyConfiguration.Debug;
+
+        private StreamWriter outputWriter;
+
+        private const String universalSdkRootKey = @"HKEY_LOCAL_MACHINE\Software\Microsoft\Windows Kits\Installed Roots";
+        private const String universalSdkRootValue = @"KitsRoot10";
+
+        private const String powershellRootKey = @"HKEY_LOCAL_MACHINE\Software\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell";
+        private const String powershellRootValue = @"Path";
 
         private UserInfo credentials = new UserInfo() { UserName = "Administrator", Password = "p@ssw0rd" };
         private const int QueryInterval = 3000;
@@ -155,19 +168,58 @@ namespace IotCoreAppDeployment
 	        return RETURN_CODE.SUCCESS;
         }
 
+        public void OutputMessage(String message)
+        {
+            outputWriter.WriteLine(message);
+        }
+
         void DoUsage()
         {
             String appName = "IotCoreAppDeployment.exe";
-            System.Console.WriteLine("Usage:", appName);
-            System.Console.WriteLine("  {0} arguments:", appName);
+            OutputMessage("Usage:");
+            OutputMessage(String.Format("  {0} arguments:", appName));
             foreach (var helper in argumentHelper)
             {
-                System.Console.WriteLine("    " + helper.HelpString);
+                OutputMessage("    " + helper.HelpString);
             }
-            System.Console.WriteLine("");
-            System.Console.WriteLine("Example:");
-            System.Console.WriteLine("  {0} s -source app.py -targetname 1.2.3.4 -targettype ARM -sdk 10.0.10586.0", appName);
-            System.Console.WriteLine("");
+            OutputMessage("");
+            OutputMessage("Example:");
+            OutputMessage(String.Format("  {0} s -source app.py -targetname 1.2.3.4 -targettype ARM -sdk 10.0.10586.0", appName));
+            OutputMessage("");
+        }
+
+        void ExecuteExternalProcess(String executableFileName, String arguments, String logFileName)
+        {
+            Process process = new Process();
+            process.StartInfo.FileName = executableFileName;
+            process.StartInfo.Arguments = arguments;
+            process.StartInfo.RedirectStandardOutput = true;
+            process.StartInfo.RedirectStandardError = true;
+            process.StartInfo.UseShellExecute = false;
+            process.StartInfo.CreateNoWindow = true;
+            process.Start();
+
+            var output = new StringBuilder();
+            // Using WaitForExit would be cleaner, but for some reason, it
+            // hangs when using MakeAppx.  In the process of debugging that,
+            // I found that this never hangs.
+            while (!process.HasExited)
+            {
+                output.Append(process.StandardOutput.ReadToEnd());
+                Thread.Sleep(100);
+            }
+
+            using (var logStream = new StreamWriter(logFileName))
+            {
+                String errors = process.StandardError.ReadToEnd();
+                if (errors != null && errors.Length != 0)
+                {
+                    logStream.WriteLine("Errors:");
+                    logStream.Write(errors);
+                }
+                logStream.WriteLine("\n\n\n\nFull Output:");
+                logStream.Write(output.ToString());
+            }
         }
 
         async Task<bool> CreateAndDeployApp()
@@ -175,33 +227,59 @@ namespace IotCoreAppDeployment
             #region Find Template and Project from available providers
 
             // Ensure that the required Tools (MakeAppx and SignTool) can be found
-            String sdkToolCmdFormat = "C:\\Program Files{0}\\Windows Kits\\10\\bin\\{1}\\{2}";
+            var universalSdkRoot = Registry.GetValue(universalSdkRootKey, universalSdkRootValue, null) as String;
+            if (universalSdkRoot == null && (makeAppxPath == null || signToolPath == null))
+            {
+                OutputMessage("Error: MakeAppx.exe and SignTool.exe must be installed.  These tools ");
+                OutputMessage("       are installed as part of the Windows Standalone SDK for Windows 10 ");
+                OutputMessage("       (https://go.microsoft.com/fwlink/?LinkID=698771).  If they are ");
+                OutputMessage("       present on your machine, please provide the paths using -makeappx ");
+                OutputMessage("       and -signtool.");
+                return false;
+            }
+            String sdkToolCmdFormat = "{0}\\bin\\{1}\\{2}";
             bool is64 = Environment.Is64BitOperatingSystem;
             String makeAppxCmd = (makeAppxPath == null) ?
-                String.Format(sdkToolCmdFormat, is64 ? " (x86)" : "", is64 ? "x64" : "x86", "MakeAppx.exe") :
+                String.Format(sdkToolCmdFormat, universalSdkRoot, is64 ? "x64" : "x86", "MakeAppx.exe") :
                 makeAppxPath;
             String signToolCmd = (signToolPath == null) ?
-                String.Format(sdkToolCmdFormat, is64 ? " (x86)" : "", is64 ? "x64" : "x86", "SignTool.exe") :
+                String.Format(sdkToolCmdFormat, universalSdkRoot, is64 ? "x64" : "x86", "SignTool.exe") :
                 signToolPath;
             if (!File.Exists(makeAppxCmd) || !File.Exists(signToolCmd))
             {
-                System.Console.WriteLine("Error: MakeAppx.exe and SignTool.exe must be installed.  These tools are installed as part of the Windows Standalone SDK for Windows 10 (https://go.microsoft.com/fwlink/?LinkID=698771).");
+                OutputMessage("Error: MakeAppx.exe and SignTool.exe must be installed.  These tools ");
+                OutputMessage("       are installed as part of the Windows Standalone SDK for Windows 10 ");
+                OutputMessage("       (https://go.microsoft.com/fwlink/?LinkID=698771).  If they are ");
+                OutputMessage("       present on your machine, please provide the paths using -makeappx ");
+                OutputMessage("       and -signtool.");
                 return false;
             }
-            
+
+            // Ensure that PowerShell.exe can be found
+            var powershellCmd = (powershellPath == null) ?
+                Registry.GetValue(powershellRootKey, powershellRootValue, null) as String :
+                powershellPath;
+            if (powershellCmd == null || !File.Exists(powershellCmd))
+            {
+                OutputMessage("Error: PowerShell.exe cannot be found.  Please use -powershell to provide");
+                OutputMessage("       the location.");
+                return false;
+            }
+
             // Surround tool cmd paths with quotes in case there are spaces in the paths
             makeAppxCmd = "\"" + makeAppxCmd + "\"";
             signToolCmd = "\"" + signToolCmd + "\"";
+            powershellCmd = "\"" + powershellCmd + "\"";
 
             // Find an appropriate path for the input source
             var supportedProjects = new SupportedProjects();
             IProject project = supportedProjects.FindProject(source);
             if (null == project)
             {
-                System.Console.WriteLine("Error: source is not supported. {0}", source);
+                OutputMessage(String.Format("Error: source is not supported. {0}", source));
                 return false;
             }
-            System.Console.WriteLine("... project system found: {0}", project.Name);
+            OutputMessage(String.Format("... project system found: {0}", project.Name));
 
             // Configure IProject with user input
             project.SourceInput = source;
@@ -214,7 +292,7 @@ namespace IotCoreAppDeployment
             IBaseProjectTypes baseProjectType = project.GetBaseProjectType();
             if (IBaseProjectTypes.Other == baseProjectType)
             {
-                System.Console.WriteLine("Error: base project type is not supported. {0}", baseProjectType.ToString());
+                OutputMessage(String.Format("Error: base project type is not supported. {0}", baseProjectType.ToString()));
                 return false;
             }
 
@@ -222,10 +300,10 @@ namespace IotCoreAppDeployment
             ITemplate template = supportedProjects.FindTemplate(baseProjectType);
             if (null == template)
             {
-                System.Console.WriteLine("Error: base project type is not supported. {0}", baseProjectType.ToString());
+                OutputMessage(String.Format("Error: base project type is not supported. {0}", baseProjectType.ToString()));
                 return false;
             }
-            System.Console.WriteLine("... base project system found: {0}", template.Name);
+            OutputMessage(String.Format("... base project system found: {0}", template.Name));
 
             #endregion
 
@@ -247,7 +325,7 @@ namespace IotCoreAppDeployment
             {
                 content.Apply(outputFolder);
             }
-            System.Console.WriteLine("... base project files found and copied: {0}", outputFolder);
+            OutputMessage(String.Format("... base project files found and copied: {0}", outputFolder));
             #endregion
 
             // 2. Copy IProject-specific (but still generic) files
@@ -257,7 +335,7 @@ namespace IotCoreAppDeployment
             {
                 content.Apply(outputFolder);
             }
-            System.Console.WriteLine("... project files found and copied: {0}", outputFolder);
+            OutputMessage(String.Format("... project files found and copied: {0}", outputFolder));
             #endregion
 
             // 3. Make changes to the files to tailor them to the specific user input
@@ -267,7 +345,7 @@ namespace IotCoreAppDeployment
             {
                 change.ApplyToContent(outputFolder);
             }
-            System.Console.WriteLine("... project files tailored to current deployment.");
+            OutputMessage("... project files tailored to current deployment.");
             #endregion
 
             // 4. Add IProject-specific capabilities
@@ -301,45 +379,20 @@ namespace IotCoreAppDeployment
                     mapFileWriter.WriteLine(appxFile);
                 }
             }
-            System.Console.WriteLine("... APPX map file created: {0}", mapFile);
+            OutputMessage(String.Format("... APPX map file created: {0}", mapFile));
             #endregion
 
             // 6. Create APPX file
             #region Call MakeAppx.exe
             String makeAppxArgsFormat = "pack /l /h sha256 /m \"{0}\" /f \"{1}\" /o /p \"{2}\"";
             String makeAppxArgs = String.Format(makeAppxArgsFormat, outputFolder + @"\AppxManifest.xml", mapFile, outputAppx);
-            Process makeAppxProcess = new Process();
-            makeAppxProcess.StartInfo.FileName = makeAppxCmd;
-            makeAppxProcess.StartInfo.Arguments = makeAppxArgs;
-            makeAppxProcess.StartInfo.RedirectStandardOutput = true;
-            makeAppxProcess.StartInfo.RedirectStandardError = true;
-            makeAppxProcess.StartInfo.UseShellExecute = false;
-            makeAppxProcess.StartInfo.CreateNoWindow = true;
-            makeAppxProcess.Start();
+            String makeAppxLogfile = outputFolder + @"\makeappx.log";
 
-            var makeAppxOutput = "";
-            while (!makeAppxProcess.HasExited)
-            {
-                // give the process a kick to make sure it doesn't get hung
-                makeAppxOutput += makeAppxProcess.StandardOutput.ReadToEnd();
-                Thread.Sleep(100);
-            }
+            ExecuteExternalProcess(makeAppxCmd, makeAppxArgs, makeAppxLogfile);
 
-            String makeAppxLogfile =outputFolder + @"\makeappx.log";
-            using (var makeAppxLogStream = new StreamWriter(makeAppxLogfile))
-            {
-                String errors = makeAppxProcess.StandardError.ReadToEnd();
-                if (errors != null && errors.Length != 0)
-                {
-                    makeAppxLogStream.WriteLine("Errors:");
-                    makeAppxLogStream.Write(errors);
-                }
-                makeAppxLogStream.WriteLine("\n\n\n\nFull Output:");
-                makeAppxLogStream.Write(makeAppxOutput);
-            }
-            System.Console.WriteLine("... APPX file created");
-            System.Console.WriteLine("        {0}", outputAppx);
-            System.Console.WriteLine("        logfile: {0}", makeAppxLogfile);
+            OutputMessage("... APPX file created");
+            OutputMessage(String.Format("        {0}", outputAppx));
+            OutputMessage(String.Format("        logfile: {0}", makeAppxLogfile));
 
             #endregion
 
@@ -348,37 +401,12 @@ namespace IotCoreAppDeployment
             String pfxFile = outputFolder + @"\TemporaryKey.pfx";
             String signToolArgsFormat = "sign /fd sha256 /f \"{0}\" \"{1}\"";
             String signToolArgs = String.Format(signToolArgsFormat, pfxFile, outputAppx);
-            Process signToolProcess = new Process();
-            signToolProcess.StartInfo.FileName = signToolCmd;
-            signToolProcess.StartInfo.Arguments = signToolArgs;
-            signToolProcess.StartInfo.RedirectStandardOutput = true;
-            signToolProcess.StartInfo.RedirectStandardError = true;
-            signToolProcess.StartInfo.UseShellExecute = false;
-            signToolProcess.StartInfo.CreateNoWindow = true;
-            signToolProcess.Start();
-
-            var signToolOutput = "";
-            while (!signToolProcess.HasExited)
-            {
-                // give the process a kick to make sure it doesn't get hung
-                signToolOutput += signToolProcess.StandardOutput.ReadToEnd();
-                Thread.Sleep(100);
-            }
-
             String signToolLogfile = outputFolder + @"\signtool.log";
-            using (var signToolLogStream = new StreamWriter(signToolLogfile))
-            {
-                String errors = signToolProcess.StandardError.ReadToEnd();
-                if (errors != null && errors.Length != 0)
-                {
-                    signToolLogStream.WriteLine("Errors:");
-                    signToolLogStream.Write(errors);
-                }
-                signToolLogStream.WriteLine("\n\n\n\nFull Output:");
-                signToolLogStream.Write(signToolOutput);
-            }
-            System.Console.WriteLine("... APPX file signed with PFX", signToolLogfile);
-            System.Console.WriteLine("        logfile: {0}", signToolLogfile);
+
+            ExecuteExternalProcess(signToolCmd, signToolArgs, signToolLogfile);
+
+            OutputMessage(String.Format("... APPX file signed with PFX", signToolLogfile));
+            OutputMessage(String.Format("        logfile: {0}", signToolLogfile));
 
             #endregion
 
@@ -386,38 +414,13 @@ namespace IotCoreAppDeployment
             #region Create CER file from PFX
             String getCertArgsFormat = "\"Get-PfxCertificate -FilePath \'{0}\' | Export-Certificate -FilePath \'{1}\' -Type CERT\"";
             String getCertArgs = String.Format(getCertArgsFormat, pfxFile, outputCer);
-            Process powershellProcess = new Process();
-            powershellProcess.StartInfo.FileName = @"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe";
-            powershellProcess.StartInfo.Arguments = getCertArgs;
-            powershellProcess.StartInfo.RedirectStandardOutput = true;
-            powershellProcess.StartInfo.RedirectStandardError = true;
-            powershellProcess.StartInfo.UseShellExecute = false;
-            powershellProcess.StartInfo.CreateNoWindow = true;
-            powershellProcess.Start();
-
-            var powershellOutput = "";
-            while (!powershellProcess.HasExited)
-            {
-                // give the process a kick to make sure it doesn't get hung
-                powershellOutput += powershellProcess.StandardOutput.ReadToEnd();
-                Thread.Sleep(100);
-            }
-
             String powershellLogfile = outputFolder + @"\powershell.log";
-            using (var powershellLogStream = new StreamWriter(powershellLogfile))
-            {
-                String errors = powershellProcess.StandardError.ReadToEnd();
-                if (errors != null && errors.Length != 0)
-                {
-                    powershellLogStream.WriteLine("Errors:");
-                    powershellLogStream.Write(errors);
-                }
-                powershellLogStream.WriteLine("\n\n\n\nFull Output:");
-                powershellLogStream.Write(powershellOutput);
-            }
-            System.Console.WriteLine("... CER file generated from PFX");
-            System.Console.WriteLine("        {0}", outputCer);
-            System.Console.WriteLine("        logfile: {0}", signToolLogfile);
+
+            ExecuteExternalProcess(powershellCmd, getCertArgs, powershellLogfile);
+
+            OutputMessage("... CER file generated from PFX");
+            OutputMessage(String.Format("        {0}", outputCer));
+            OutputMessage(String.Format("        logfile: {0}", powershellLogfile));
             #endregion
 
             // 9. Copy appropriate Dependencies from IProject
@@ -428,7 +431,7 @@ namespace IotCoreAppDeployment
             {
                 dependency.Apply(artifactsFolder);
             }
-            System.Console.WriteLine("... dependencies copied into place");
+            OutputMessage("... dependencies copied into place");
 
             #endregion
 
@@ -448,7 +451,7 @@ namespace IotCoreAppDeployment
 
             #region Call WEBB Rest APIs to deploy
             var webbHelper = new WebbHelper();
-            System.Console.WriteLine("... Starting to deploy certificate, APPX, and dependencies");
+            OutputMessage("... Starting to deploy certificate, APPX, and dependencies");
             var result = await webbHelper.DeployAppAsync(files, targetName, credentials);
             if (result == HttpStatusCode.Accepted)
             {
@@ -456,10 +459,10 @@ namespace IotCoreAppDeployment
             }
             else
             {
-                System.Console.WriteLine("... Deployment failed.");
+                OutputMessage("... Deployment failed.");
                 return false;
             }
-            System.Console.WriteLine("... Deployment finished.");
+            OutputMessage("... Deployment finished.");
             #endregion
 
             #endregion
@@ -484,11 +487,17 @@ namespace IotCoreAppDeployment
             #endregion
 
 
-            System.Console.WriteLine("\r\n\r\n***");
-            System.Console.WriteLine("*** PackageFullName = {0}_1.0.0.0_{1}__1w720vyc4ccym", project.IdentityName, configuration.ToString());
-            System.Console.WriteLine("***\r\n\r\n");
+            OutputMessage("\r\n\r\n***");
+            OutputMessage(String.Format("*** PackageFullName = {0}_1.0.0.0_{1}__1w720vyc4ccym", project.IdentityName, configuration.ToString()));
+            OutputMessage("***\r\n\r\n");
 
             return true;
+        }
+
+        DeploymentWorker(Stream outputStream)
+        {
+            this.outputWriter = new StreamWriter(outputStream);
+            this.outputWriter.AutoFlush = true;
         }
 
         ~DeploymentWorker()
@@ -503,15 +512,15 @@ namespace IotCoreAppDeployment
             #endregion
         }
 
-        public static async Task<bool> Execute(string[] args)
+        public static async Task<bool> Execute(string[] args, Stream outputStream)
         {
-            DeploymentWorker worker = new DeploymentWorker();
+            DeploymentWorker worker = new DeploymentWorker(outputStream);
             var result = worker.ParseCommandLine(args);
             if (worker.doUsage) { worker.DoUsage(); return false; }
 
-            System.Console.WriteLine("Starting utility to deploy an Iot Core app based on source ...");
+            worker.OutputMessage("Starting utility to deploy an Iot Core app based on source ...");
             bool ret = await worker.CreateAndDeployApp();
-            System.Console.WriteLine("... finished");
+            worker.OutputMessage("... finished");
 
             return ret;
         }
