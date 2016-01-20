@@ -9,103 +9,108 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Fclp.Internals;
 
 namespace IotCoreAppDeployment
 {
     public class DeploymentWorker
     {
         #region Define arguments
-        private class ArgumentHelper
+        private Fclp.FluentCommandLineParser commandLineParser = null;
+        public Fclp.FluentCommandLineParser CommandLineParser
         {
-            public Regex ArgumentMatcher { get; set; }
-            public Func<DeploymentWorker, String[], int, int> Handler { get; set; }
-            public String HelpString { get; set; }
-
-            public ArgumentHelper(String argName, String helpMsg)
+            get
             {
-                ArgumentMatcher = new Regex(@"(^-" + argName + ")", RegexOptions.IgnoreCase);
-                HelpString = "-" + argName + " " + helpMsg;
-            }
-            public ArgumentHelper(String[] argNames, String helpMsg)
-            {
-                StringBuilder args = new StringBuilder();
-                for (int i = 0; i<argNames.Length; i++)
+                if (commandLineParser == null)
                 {
-                    if (i != 0) args.Append("|");
-                    args.Append(argNames[i]);
+                    commandLineParser = new Fclp.FluentCommandLineParser();
+                    commandLineParser.IsCaseSensitive = false;
+
+                    commandLineParser.Setup<string>('s')
+                        .WithDescription("Specify source input")
+                        .Callback(value => { source = value; })
+                        .Required();
+
+                    commandLineParser.Setup<string>('n')
+                        .WithDescription("Speficy IoT Core device name or IP address")
+                        .Callback(value => { targetName = value; })
+                        .Required();
+
+                    commandLineParser.Setup<string>('k')
+                        .WithDescription("Specify SDK version ... 10.0.10586.0 is the default")
+                        .Callback(value =>
+                        {
+                            switch (value)
+                            {
+                                case "10.0.10586.0": sdk = SdkVersion.SDK_10_10586_0; break;
+                                default:
+                                    OutputMessage("Error: suported dependency sdks are: 10.0.10586.0");
+                                    throw new Fclp.OptionSyntaxException();
+                            }
+                        })
+                        .SetDefault("10.0.10586.0");
+
+                    commandLineParser.Setup<DependencyConfiguration>('f')
+                        .WithDescription("Specify the configuration [Debug|Release] ... Debug is the default")
+                        .Callback(value => { configuration = value; })
+                        .SetDefault(DependencyConfiguration.Debug);
+
+                    commandLineParser.Setup<TargetPlatform>('a')
+                        .WithDescription("Specify the target architecture [ARM|X86] ... ARM is the default")
+                        .Callback(value => { targetType = value; })
+                        .SetDefault(TargetPlatform.ARM);
+
+                    commandLineParser.Setup<string>('u')
+                        .WithDescription(String.Format("Specify target username ... {0} is the default", defaultTargetUserName))
+                        .Callback(value => { credentials.UserName = value; })
+                        .SetDefault(defaultTargetUserName);
+
+                    commandLineParser.Setup<string>('p')
+                        .WithDescription(String.Format("Specify target user password) ... {0} is the default", defaultTargetPassword))
+                        .Callback(value => { credentials.Password = value; })
+                        .SetDefault(defaultTargetPassword);
+
+                    commandLineParser.Setup<string>('o')
+                        .WithDescription("Specify full local path to output APPX to ... if this is not provided, files will not be saved")
+                        .Callback(value => { copyOutputToFolder = value; });
+
+                    commandLineParser.Setup<string>('x')
+                        .WithDescription("Specify MakeAppx.exe full path ... if this is not provided, the registry is queried")
+                        .Callback(value => { makeAppxPath = value; });
+
+                    commandLineParser.Setup<string>('g')
+                        .WithDescription("Specify SignTool.exe full path ... if this is not provided, the registry is queried")
+                        .Callback(value => { signToolPath = value; });
+
+                    commandLineParser.Setup<string>('w')
+                        .WithDescription("Specify PowerShell.exe full path ... if this is not provided, the registry is queried")
+                        .Callback(value => { powershellPath = value; });
+
+                    commandLineParser.SetupHelp(new String[] { "?", "help", "h" })
+                        .Callback(text =>
+                        {
+                            OutputMessage("");
+                            OutputMessage(String.Format("  {0} -s (source) -n (target):", "IotCoreAppDeployment.exe"));
+                            OutputMessage("");
+                            foreach (var option in CommandLineParser.Options)
+                            {
+                                if (option.IsRequired) OutputMessage(String.Format("    -{0} (required)    {1}", option.ShortName, option.Description));
+                            }
+                            OutputMessage("");
+                            var sortedOptions = new ICommandLineOption[CommandLineParser.Options.Count];
+                            CommandLineParser.Options.CopyTo(sortedOptions);
+                            Array.Sort(sortedOptions, (a, b) => { return a.ShortName.CompareTo(b.ShortName); });
+                            foreach (var option in sortedOptions)
+                            {
+                                if (!option.IsRequired) OutputMessage(String.Format("    -{0}               {1}", option.ShortName, option.Description));
+                            }
+                            OutputMessage("");
+                        });
                 }
-                ArgumentMatcher = new Regex(@"(^" + args.ToString() + ")", RegexOptions.IgnoreCase);
-                HelpString = args.ToString() + " " + helpMsg;
+                return commandLineParser;
             }
         }
 
-        private List<ArgumentHelper> argumentHelper = new List<ArgumentHelper>() {
-            new ArgumentHelper("source", "(source input)") {
-                Handler = (worker, args, index) => { worker.source = args[index + 1]; return index+2; },
-            },
-            new ArgumentHelper("sdk", "(SDK version) {if nothing is provided, 10.0.10586.0 is the default}") {
-                Handler = (worker, args, index) => {
-                    switch (args[index+1])
-                    {
-                        case "10.0.10586.0": worker.sdk = SdkVersion.SDK_10_10586_0; break;
-                        default:
-                            worker.OutputMessage("Error: suported dependency sdks are: 10.0.10586.0");
-                            return -1;
-                    }
-                    return index+2;
-                },
-            },
-            new ArgumentHelper("config", "[Debug|Release] {if nothing is provided, Debug is the default}") {
-                Handler = (worker, args, index) => {
-                    switch (args[index+1])
-                    {
-                        case "DEBUG": worker.configuration = DependencyConfiguration.Debug; break;
-                        case "RELEASE": worker.configuration = DependencyConfiguration.Release; break;
-                        default:
-                            worker.OutputMessage("Error: suported dependency configurations are: Debug | Release");
-                            return -1;
-                    }
-                    return index+2;
-                },
-            },
-            new ArgumentHelper("targetname", "(IoT Core device name or IP address)") {
-                Handler = (worker, args, index) => { worker.targetName = args[index+1]; return index+2; },
-            },
-            new ArgumentHelper("targettype", "[ARM|X86] {if nothing is provided, ARM is the default}") {
-                Handler = (worker, args, index) => {
-                    switch (args[index+1])
-                    {
-                        case "arm": worker.targetType = TargetPlatform.ARM; break;
-                        case "x86": worker.targetType = TargetPlatform.X86; break;
-                        default:
-                            worker.OutputMessage("Error: suported target types are ARM or X86.");
-                            return -1;
-                    }
-                    return index+2;
-                },
-            },
-            new ArgumentHelper("targetuser", "(IoT Core device username) {if nothing is provided, DefaultAccount is the default}") {
-                Handler = (worker, args, index) => { worker.credentials.UserName = args[index+1]; return index+2; },
-            },
-            new ArgumentHelper("targetpassword", "(IoT Core device user password) {if nothing is provided, p@ssw0rd is the default}") {
-                Handler = (worker, args, index) => { worker.credentials.Password = args[index+1]; return index+2; },
-            },
-            new ArgumentHelper("makeappx", "(MakeAppx.exe full path) {if nothing is provided, default Windows SDK installation assumed}") {
-                Handler = (worker, args, index) => { worker.makeAppxPath = args[index+1]; return index+2; },
-            },
-            new ArgumentHelper("signtool", "(SignTool.exe full path) {if nothing is provided, default Windows SDK installation assumed}") {
-                Handler = (worker, args, index) => { worker.signToolPath = args[index+1]; return index+2; },
-            },
-            new ArgumentHelper("powershell", "(PowerShell.exe full path) {if nothing is provided, the registry is queried}") {
-                Handler = (worker, args, index) => { worker.powershellPath = args[index+1]; return index+2; },
-            },
-            new ArgumentHelper("output", "(full path to output APPX to) {if nothing is provided, files will not be saved}") {
-                Handler = (worker, args, index) => { worker.copyOutputToFolder = args[index+1]; return index+2; },
-            },
-            new ArgumentHelper(new string[] { "-help", "-?", "-h" }, "Display usage") {
-                Handler = (worker, args, index) => { worker.doUsage = true; return -1; },
-            },
-        };
         #endregion
 
         private String outputFolder = "";
@@ -127,7 +132,9 @@ namespace IotCoreAppDeployment
         private const String powershellRootKey = @"HKEY_LOCAL_MACHINE\Software\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell";
         private const String powershellRootValue = @"Path";
 
-        private UserInfo credentials = new UserInfo() { UserName = "Administrator", Password = "p@ssw0rd" };
+        private const String defaultTargetUserName = "Administrator";
+        private const String defaultTargetPassword = "p@ssw0rd";
+        private UserInfo credentials = new UserInfo() { UserName = defaultTargetUserName, Password = defaultTargetPassword };
         private const int QueryInterval = 3000;
 
         bool doUsage = false;
@@ -139,53 +146,9 @@ namespace IotCoreAppDeployment
             ERROR_BAD_ARGUMENT,
         };
 
-        RETURN_CODE ParseCommandLine(String[] argv)
-        {
-
-	        if (argv.Length <= 1)
-	        {
-		        doUsage = true;
-		        return RETURN_CODE.ERROR_BAD_ARGUMENT;
-	        }
-
-            doUsage = false;
-            int current = 0;
-	        while (current < argv.Length)
-	        {
-                foreach (var helper in argumentHelper)
-                {
-                    if (helper.ArgumentMatcher.IsMatch(argv[current]))
-                    {
-                        current = helper.Handler(this, argv, current);
-                        if (current == -1)
-                        {
-                            return RETURN_CODE.ERROR_BAD_ARGUMENT;
-                        }
-                        break;
-                    }
-                }
-	        }
-	        return RETURN_CODE.SUCCESS;
-        }
-
         public void OutputMessage(String message)
         {
             outputWriter.WriteLine(message);
-        }
-
-        void DoUsage()
-        {
-            String appName = "IotCoreAppDeployment.exe";
-            OutputMessage("Usage:");
-            OutputMessage(String.Format("  {0} arguments:", appName));
-            foreach (var helper in argumentHelper)
-            {
-                OutputMessage("    " + helper.HelpString);
-            }
-            OutputMessage("");
-            OutputMessage("Example:");
-            OutputMessage(String.Format("  {0} s -source app.py -targetname 1.2.3.4 -targettype ARM -sdk 10.0.10586.0", appName));
-            OutputMessage("");
         }
 
         void ExecuteExternalProcess(String executableFileName, String arguments, String logFileName)
@@ -515,12 +478,37 @@ namespace IotCoreAppDeployment
         public static async Task<bool> Execute(string[] args, Stream outputStream)
         {
             DeploymentWorker worker = new DeploymentWorker(outputStream);
-            var result = worker.ParseCommandLine(args);
-            if (worker.doUsage) { worker.DoUsage(); return false; }
+            var result2 = worker.CommandLineParser.Parse(args);
+            var unrecognizedOptions = result2.AdditionalOptionsFound.GetEnumerator();
+            var hasUnrecognizedOptions = unrecognizedOptions.MoveNext();
+            var returnEarly = result2.HasErrors || hasUnrecognizedOptions || result2.HelpCalled;
+            var showUsage = returnEarly && !result2.HelpCalled;
+            if (showUsage)
+            {
+                if (hasUnrecognizedOptions)
+                {
+                    worker.OutputMessage("");
+                    worker.OutputMessage("Error: Unrecognized options specified:");
+                    worker.OutputMessage("");
+                    do
+                    {
+                        worker.OutputMessage(String.Format("    -{0} {1}", unrecognizedOptions.Current.Key, unrecognizedOptions.Current.Value));
+                    }
+                    while (unrecognizedOptions.MoveNext());
+
+                    worker.OutputMessage("");
+                    worker.OutputMessage("Usage:");
+                }
+
+                worker.CommandLineParser.HelpOption.ShowHelp(worker.CommandLineParser.Options);
+            }
+            if (returnEarly)
+            { 
+                return false;
+            }
 
             worker.OutputMessage("Starting utility to deploy an Iot Core app based on source ...");
             bool ret = await worker.CreateAndDeployApp();
-            worker.OutputMessage("... finished");
 
             return ret;
         }
