@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <Package IgnorableNamespaces="uap mp iot build" xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" xmlns:iot="http://schemas.microsoft.com/appx/manifest/iot/windows10" xmlns:build="http://schemas.microsoft.com/developer/appx/2015/build">
   
-  <Identity Name="BackgroundApplication1-uwp" Publisher="CN=bfjelds" Version="1.0.0.0" ProcessorArchitecture="x86"/>
+  <Identity Name="BackgroundApplication1-uwp" Publisher="CN=TEST" Version="1.0.0.0" ProcessorArchitecture="x86"/>
   <mp:PhoneIdentity PhoneProductId="d4a5d0ee-e647-4211-9539-4288770ed935" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
   <Properties>
     <DisplayName>BackgroundApplication1</DisplayName>
-    <PublisherDisplayName>bfjelds</PublisherDisplayName>
+    <PublisherDisplayName>TEST</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
   <Dependencies>
