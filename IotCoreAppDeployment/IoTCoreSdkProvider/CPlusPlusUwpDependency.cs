@@ -20,7 +20,7 @@ namespace IoTCoreSdkProvider
             var vclibVersion = "";
             switch (sdkVersion)
             {
-                case SdkVersion.SDK_10_10586_0: vclibVersion = "14.00"; break;
+                case SdkVersion.SDK_10_0_10586_0: vclibVersion = "14.00"; break;
                 default:
                     return null;
             }

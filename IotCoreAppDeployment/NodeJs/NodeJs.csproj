@@ -53,9 +53,6 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
-    <EmbeddedResource Include="Resources\x86\package.json" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Resources\x86\msvcp140.dll" />
     <EmbeddedResource Include="Resources\x86\node.dll" />
     <EmbeddedResource Include="Resources\x86\nodeuwp.dll" />
@@ -77,9 +74,6 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\ARM\nodeuwp.dll" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\ARM\package.json" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\ARM\startupinfo.xml" />

@@ -58,7 +58,7 @@ namespace Python
             String sdkVersionString = null;
             switch (SdkVersion)
             {
-                case SdkVersion.SDK_10_10586_0: sdkVersionString = "10.0.10586.0"; break;
+                case SdkVersion.SDK_10_0_10586_0: sdkVersionString = "10.0.10586.0"; break;
                 default:
                     sdkVersionString = "10.0.10240.0"; break; // TODO: throw exception?
             }

@@ -10,6 +10,8 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Fclp.Internals;
+using System.ComponentModel;
+using System.Reflection;
 
 namespace IotCoreAppDeployment
 {
@@ -37,18 +39,37 @@ namespace IotCoreAppDeployment
                         .Required();
 
                     commandLineParser.Setup<string>('k')
-                        .WithDescription("Specify SDK version ... 10.0.10586.0 is the default")
+                        .WithDescription(String.Format("Specify SDK version ... {0} is the default", defaultSdkVersion))
                         .Callback(value =>
                         {
-                            switch (value)
+                            sdk = GetSdkVersionFromString(value);
+                            if (sdk == SdkVersion.Unknown)
                             {
-                                case "10.0.10586.0": sdk = SdkVersion.SDK_10_10586_0; break;
-                                default:
-                                    OutputMessage("Error: suported dependency sdks are: 10.0.10586.0");
-                                    throw new Fclp.OptionSyntaxException();
+                                StringBuilder sb = new StringBuilder();
+                                var sdkVersionMembers = typeof(SdkVersion).GetEnumValues();
+                                for (int i=0; i<sdkVersionMembers.Length; i++)
+                                {
+                                    var sdkVersionMember = (SdkVersion)sdkVersionMembers.GetValue(i);
+                                    if (SdkVersion.Unknown == sdkVersionMember) continue;
+
+                                    var field = typeof(SdkVersion).GetField(sdkVersionMember.ToString());
+                                    var customAttributes = field.GetCustomAttributes(typeof(DescriptionAttribute), false);
+                                    for (int j = 0; j < customAttributes.Length; j++)
+                                    {
+                                        var descriptionAttribute = customAttributes[j] as DescriptionAttribute;
+                                        if (descriptionAttribute != null)
+                                        {
+                                            if (sb.Length != 0) sb.Append(", ");
+                                            sb.Append(descriptionAttribute.Description);
+                                        }
+                                    }
+                                }
+
+                                OutputMessage(String.Format("Error: suported dependency sdks are: {0}", sb.ToString()));
+                                throw new Fclp.OptionSyntaxException();
                             }
                         })
-                        .SetDefault("10.0.10586.0");
+                        .SetDefault(defaultSdkVersion);
 
                     commandLineParser.Setup<DependencyConfiguration>('f')
                         .WithDescription("Specify the configuration [Debug|Release] ... Debug is the default")
@@ -121,7 +142,7 @@ namespace IotCoreAppDeployment
         private String powershellPath = null;
         private String copyOutputToFolder = null;
         private TargetPlatform targetType = TargetPlatform.ARM;
-        private SdkVersion sdk = SdkVersion.SDK_10_10586_0;
+        private SdkVersion sdk = SdkVersion.SDK_10_0_10586_0;
         private DependencyConfiguration configuration = DependencyConfiguration.Debug;
 
         private StreamWriter outputWriter;
@@ -132,26 +153,39 @@ namespace IotCoreAppDeployment
         private const String powershellRootKey = @"HKEY_LOCAL_MACHINE\Software\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell";
         private const String powershellRootValue = @"Path";
 
+        private const String defaultSdkVersion = "10.0.10586.0";
         private const String defaultTargetUserName = "Administrator";
         private const String defaultTargetPassword = "p@ssw0rd";
         private UserInfo credentials = new UserInfo() { UserName = defaultTargetUserName, Password = defaultTargetPassword };
         private const int QueryInterval = 3000;
 
-        bool doUsage = false;
-
-        private enum RETURN_CODE
+        public static SdkVersion GetSdkVersionFromString(String sdk)
         {
-            SUCCESS = 0,
-            ERROR_UNKNOWN,
-            ERROR_BAD_ARGUMENT,
-        };
+            var sdkVersionMembers = typeof(SdkVersion).GetEnumValues();
+            for (int i = 0; i < sdkVersionMembers.Length; i++)
+            {
+                var enumValue = (SdkVersion)sdkVersionMembers.GetValue(i);
+                var field = typeof(SdkVersion).GetField(enumValue.ToString());
+                var customAttributes = field.GetCustomAttributes(typeof(DescriptionAttribute), false);
+                for (int j = 0; j < customAttributes.Length; j++)
+                {
+                    var descriptionAttribute = customAttributes[j] as DescriptionAttribute;
+                    if (null != descriptionAttribute && descriptionAttribute.Description.Equals(sdk, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        return enumValue;
+                    }
+                }
+            }
+
+            return SdkVersion.Unknown;
+        }
 
         public void OutputMessage(String message)
         {
             outputWriter.WriteLine(message);
         }
 
-        void ExecuteExternalProcess(String executableFileName, String arguments, String logFileName)
+        private void ExecuteExternalProcess(String executableFileName, String arguments, String logFileName)
         {
             Process process = new Process();
             process.StartInfo.FileName = executableFileName;
@@ -185,6 +219,15 @@ namespace IotCoreAppDeployment
             }
         }
 
+        private void NotifyThatMakeAppxOrSignToolNotFound()
+        {
+            OutputMessage("Error: MakeAppx.exe and SignTool.exe must be installed.  These tools ");
+            OutputMessage("       are installed as part of the Windows Standalone SDK for Windows 10 ");
+            OutputMessage("       (https://go.microsoft.com/fwlink/?LinkID=698771).  If they are ");
+            OutputMessage("       present on your machine, please provide the paths using -makeappx ");
+            OutputMessage("       and -signtool.");
+        }
+
         async Task<bool> CreateAndDeployApp()
         {
             #region Find Template and Project from available providers
@@ -193,13 +236,10 @@ namespace IotCoreAppDeployment
             var universalSdkRoot = Registry.GetValue(universalSdkRootKey, universalSdkRootValue, null) as String;
             if (universalSdkRoot == null && (makeAppxPath == null || signToolPath == null))
             {
-                OutputMessage("Error: MakeAppx.exe and SignTool.exe must be installed.  These tools ");
-                OutputMessage("       are installed as part of the Windows Standalone SDK for Windows 10 ");
-                OutputMessage("       (https://go.microsoft.com/fwlink/?LinkID=698771).  If they are ");
-                OutputMessage("       present on your machine, please provide the paths using -makeappx ");
-                OutputMessage("       and -signtool.");
+                NotifyThatMakeAppxOrSignToolNotFound();
                 return false;
             }
+
             String sdkToolCmdFormat = "{0}\\bin\\{1}\\{2}";
             bool is64 = Environment.Is64BitOperatingSystem;
             String makeAppxCmd = (makeAppxPath == null) ?
@@ -210,11 +250,7 @@ namespace IotCoreAppDeployment
                 signToolPath;
             if (!File.Exists(makeAppxCmd) || !File.Exists(signToolCmd))
             {
-                OutputMessage("Error: MakeAppx.exe and SignTool.exe must be installed.  These tools ");
-                OutputMessage("       are installed as part of the Windows Standalone SDK for Windows 10 ");
-                OutputMessage("       (https://go.microsoft.com/fwlink/?LinkID=698771).  If they are ");
-                OutputMessage("       present on your machine, please provide the paths using -makeappx ");
-                OutputMessage("       and -signtool.");
+                NotifyThatMakeAppxOrSignToolNotFound();
                 return false;
             }
 

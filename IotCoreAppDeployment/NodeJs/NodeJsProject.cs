@@ -58,7 +58,7 @@ namespace NodeJs
             String sdkVersionString = null;
             switch (SdkVersion)
             {
-                case SdkVersion.SDK_10_10586_0: sdkVersionString = "10.0.10586.0"; break;
+                case SdkVersion.SDK_10_0_10586_0: sdkVersionString = "10.0.10586.0"; break;
                 default:
                     sdkVersionString = "10.0.10240.0"; break; // TODO: throw exception?
             }
@@ -116,7 +116,6 @@ namespace NodeJs
             contents.Add(FileFromResources(@"msvcp140.dll"));
             contents.Add(FileFromResources(@"node.dll"));
             contents.Add(FileFromResources(@"nodeuwp.dll"));
-            contents.Add(FileFromResources(@"package.json"));
             contents.Add(FileFromResources(@"startupinfo.xml"));
             contents.Add(FileFromResources(@"vccorlib140.dll"));
             contents.Add(FileFromResources(@"vcruntime140.dll"));
@@ -132,7 +131,6 @@ namespace NodeJs
             files.Add("\"" + outputFolder + "\\msvcp140.dll\"         \"msvcp140.dll\"");
             files.Add("\"" + outputFolder + "\\node.dll\"         \"node.dll\"");
             files.Add("\"" + outputFolder + "\\nodeuwp.dll\"         \"nodeuwp.dll\"");
-            files.Add("\"" + outputFolder + "\\package.json\"         \"package.json\"");
             files.Add("\"" + outputFolder + "\\server.js\"         \"server.js\"");
             files.Add("\"" + outputFolder + "\\startupinfo.xml\"         \"startupinfo.xml\"");
             files.Add("\"" + outputFolder + "\\vccorlib140.dll\"         \"vccorlib140.dll\"");

@@ -1,4 +1,6 @@
-﻿namespace IotCoreAppProjectExtensibility
+﻿using System.ComponentModel;
+
+namespace IotCoreAppProjectExtensibility
 {
     public enum TargetPlatform
     {
@@ -8,7 +10,9 @@
     }
     public enum SdkVersion
     {
-        SDK_10_10586_0,
+        [Description("10.0.10586.0")]
+        SDK_10_0_10586_0,
+        [Description("Unknown")]
         Unknown,
     }
 
