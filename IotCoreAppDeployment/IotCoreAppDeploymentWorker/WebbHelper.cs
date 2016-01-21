@@ -16,6 +16,7 @@ namespace IotCoreAppDeployment
         private const int QueryInterval = 3000;
 
         private const string AppxApiUrl = "/api/appx/packagemanager/";
+        private const string AppApiUrl = "/api/app/packagemanager/";
 
         // Used to manage REST call cancellation
         private CancellationTokenSource _tokenSource;
@@ -63,6 +64,36 @@ namespace IotCoreAppDeployment
             // Expect it to be disposed by garbage collector.
             _tokenSource.Cancel();
             _tokenSource = null;
+        }
+
+        public async Task<bool> UninstallAppAsync(String packageFullName, String target, UserInfo credentials)
+        {
+            var url = String.Empty;
+            var result = HttpStatusCode.BadRequest;
+
+            IPAddress ipAddress = IPAddress.Parse(target);
+            RestHelper restHelper = new RestHelper(ipAddress, credentials);
+
+            CancellationToken? cts;
+
+            EnterWebBCall(out cts);
+
+            try
+            {
+                url = AppApiUrl + "package?package=" + packageFullName;
+
+                using (var response = await restHelper.SendRequestAsync(url, HttpMethod.Delete, null, cts))
+                {
+                    result = response.StatusCode;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+            }
+
+
+            return result == HttpStatusCode.OK;
         }
 
         public async Task<HttpStatusCode> DeployAppAsync(IEnumerable<FileInfo> files, String target, UserInfo credentials)

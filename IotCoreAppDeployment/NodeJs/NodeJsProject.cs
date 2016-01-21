@@ -9,7 +9,7 @@ namespace NodeJs
     public class NodeJsProject : IProject
     {
         public String Name { get { return "Node.js Project"; } }
-        public String IdentityName { get { return "nodejs-" + PhoneIdentityGuid; } }
+        public String IdentityName { get { return "nodejs-uwp"; } }
 
         public bool IsSourceSupported(String source)
         {

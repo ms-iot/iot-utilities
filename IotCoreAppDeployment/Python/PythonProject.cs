@@ -9,7 +9,7 @@ namespace Python
     public class PythonProject : IProject
     {
         public String Name { get { return "Python Project"; } }
-        public String IdentityName { get { return "python-" + PhoneIdentityGuid; } }
+        public String IdentityName { get { return "python-uwp"; } }
 
         public bool IsSourceSupported(String source)
         {

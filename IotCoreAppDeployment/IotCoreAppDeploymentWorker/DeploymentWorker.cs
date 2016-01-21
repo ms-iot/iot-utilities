@@ -451,6 +451,12 @@ namespace IotCoreAppDeployment
             #region Call WEBB Rest APIs to deploy
             var webbHelper = new WebbHelper();
             OutputMessage("... Starting to deploy certificate, APPX, and dependencies");
+            // Attempt to uninstall
+            var success = await webbHelper.UninstallAppAsync(String.Format("{0}_1.0.0.0_{1}__1w720vyc4ccym", project.IdentityName, targetType.ToString()), targetName, credentials);
+            if (!success)
+            {
+
+            }
             var result = await webbHelper.DeployAppAsync(files, targetName, credentials);
             if (result == HttpStatusCode.Accepted)
             {
@@ -487,7 +493,7 @@ namespace IotCoreAppDeployment
 
 
             OutputMessage("\r\n\r\n***");
-            OutputMessage(String.Format("*** PackageFullName = {0}_1.0.0.0_{1}__1w720vyc4ccym", project.IdentityName, configuration.ToString()));
+            OutputMessage(String.Format("*** PackageFullName = {0}_1.0.0.0_{1}__1w720vyc4ccym", project.IdentityName, targetType.ToString()));
             OutputMessage("***\r\n\r\n");
 
             return true;
