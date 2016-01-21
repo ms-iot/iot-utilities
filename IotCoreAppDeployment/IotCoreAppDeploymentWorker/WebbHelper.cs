@@ -22,8 +22,6 @@ namespace IotCoreAppDeployment
         private CancellationTokenSource _tokenSource;
         private object _tokenLock = new object();
 
-        private bool _hasPendingRESTCall;
-
         // BeginWebBCall and EndWebBCall have two purposes:
         // 1: Not allow two WebB calls to be made at the same time, no matter if the target of the calls are different
         // 2: Manage the cancellation token
@@ -50,7 +48,6 @@ namespace IotCoreAppDeployment
                 _tokenSource = new CancellationTokenSource();
                 cts = _tokenSource.Token;
 
-                _hasPendingRESTCall = true;
             }
         }
 
@@ -58,15 +55,13 @@ namespace IotCoreAppDeployment
         {
             Debug.WriteLine("Ending WebB call...");
 
-            _hasPendingRESTCall = false;
-
             // Issue a cancel. Can't dispose here because the HttpCancellationHelper is still holding on to this.  
             // Expect it to be disposed by garbage collector.
             _tokenSource.Cancel();
             _tokenSource = null;
         }
 
-        public async Task<bool> UninstallAppAsync(String packageFullName, String target, UserInfo credentials)
+        public async Task<HttpStatusCode> UninstallAppAsync(String packageFullName, String target, UserInfo credentials)
         {
             var url = String.Empty;
             var result = HttpStatusCode.BadRequest;
@@ -93,7 +88,7 @@ namespace IotCoreAppDeployment
             }
 
 
-            return result == HttpStatusCode.OK;
+            return result;
         }
 
         public async Task<HttpStatusCode> DeployAppAsync(IEnumerable<FileInfo> files, String target, UserInfo credentials)
@@ -122,7 +117,7 @@ namespace IotCoreAppDeployment
                         {
                             using (var sr = new StreamReader(stream))
                             {
-                                Debug.WriteLine(await sr.ReadToEndAsync());
+                                Debug.WriteLine(sr.ReadToEnd());
                             }
                         }
                     }

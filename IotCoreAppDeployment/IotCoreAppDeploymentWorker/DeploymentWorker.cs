@@ -147,6 +147,8 @@ namespace IotCoreAppDeployment
 
         private StreamWriter outputWriter;
 
+        private const String packageFullNameFormat = "{0}_1.0.0.0_{1}__1w720vyc4ccym";
+
         private const String universalSdkRootKey = @"HKEY_LOCAL_MACHINE\Software\Microsoft\Windows Kits\Installed Roots";
         private const String universalSdkRootValue = @"KitsRoot10";
 
@@ -449,25 +451,39 @@ namespace IotCoreAppDeployment
             #endregion
 
             #region Call WEBB Rest APIs to deploy
+            var packageFullName = String.Format(packageFullNameFormat, project.IdentityName, targetType.ToString());
             var webbHelper = new WebbHelper();
-            OutputMessage("... Starting to deploy certificate, APPX, and dependencies");
+            OutputMessage("... starting to deploy certificate, APPX, and dependencies");
             // Attempt to uninstall
-            var success = await webbHelper.UninstallAppAsync(String.Format("{0}_1.0.0.0_{1}__1w720vyc4ccym", project.IdentityName, targetType.ToString()), targetName, credentials);
-            if (!success)
+            var result = await webbHelper.UninstallAppAsync(packageFullName, targetName, credentials);
+            if (result == HttpStatusCode.OK)
             {
-
-            }
-            var result = await webbHelper.DeployAppAsync(files, targetName, credentials);
-            if (result == HttpStatusCode.Accepted)
-            {
-                await webbHelper.PollInstallStateAsync(targetName, credentials);
+                // result == OK means the package was uninstalled.
+                OutputMessage(String.Format("... previously deployed {0} uninstalled successfully", packageFullName));
             }
             else
             {
-                OutputMessage("... Deployment failed.");
-                return false;
+                // result != OK could mean that the package wasn't already installed
+                //           or it could mean that there was a problem with the uninstall
+                //           request.
+                OutputMessage(String.Format("... previous installation {0} was not uninstalled (if it wasn't previously installed, this is expected)", packageFullName));
             }
-            OutputMessage("... Deployment finished.");
+            result = await webbHelper.DeployAppAsync(files, targetName, credentials);
+            if (result == HttpStatusCode.Accepted)
+            {
+                await webbHelper.PollInstallStateAsync(targetName, credentials);
+                OutputMessage(String.Format("... deployment {0} finished.", packageFullName));
+
+                OutputMessage("\r\n\r\n***");
+                OutputMessage(String.Format("*** PackageFullName = {0}", packageFullName));
+                OutputMessage("***\r\n\r\n");
+
+            }
+            else
+            {
+                OutputMessage(String.Format("... deployment {0} failed.", packageFullName));
+            }
+
             #endregion
 
             #endregion
@@ -492,11 +508,7 @@ namespace IotCoreAppDeployment
             #endregion
 
 
-            OutputMessage("\r\n\r\n***");
-            OutputMessage(String.Format("*** PackageFullName = {0}_1.0.0.0_{1}__1w720vyc4ccym", project.IdentityName, targetType.ToString()));
-            OutputMessage("***\r\n\r\n");
-
-            return true;
+            return (result == HttpStatusCode.Accepted);
         }
 
         DeploymentWorker(Stream outputStream)
