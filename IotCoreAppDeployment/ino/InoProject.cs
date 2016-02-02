@@ -86,6 +86,19 @@ namespace Python
             }
         }
 
+        private String _RegistryVcCompilerPath = null;
+        private String RegistryVcCompilerPath
+        {
+            get
+            {
+                if (_RegistryVcCompilerPath == null)
+                {
+                    _RegistryVcCompilerPath = Registry.GetValue(@"HKEY_LOCAL_MACHINE\Software\Microsoft\VisualStudio\VC\19.0\x86\x86", "Compiler", "") as String;
+                }
+                return _RegistryVcCompilerPath;
+            }
+        }
+
         private String _VCToolsWorkingDirectory = null;
         private String VCToolsWorkingDirectoryFromRegistry
         {
@@ -93,8 +106,7 @@ namespace Python
             {
                 if (_VCToolsWorkingDirectory == null)
                 {
-                    String registryCompilerPath = Registry.GetValue(@"HKEY_LOCAL_MACHINE\Software\Microsoft\VisualStudio\VC\19.0\x86\x86", "Compiler", "") as String;
-                    _VCToolsWorkingDirectory = Path.GetDirectoryName(registryCompilerPath);
+                    _VCToolsWorkingDirectory = Path.GetDirectoryName(RegistryVcCompilerPath);
                 }
                 return _VCToolsWorkingDirectory;
             }
@@ -107,8 +119,7 @@ namespace Python
             {
                 if (_CompilerPath == null)
                 {
-                    String registryCompilerPath = Registry.GetValue(@"HKEY_LOCAL_MACHINE\Software\Microsoft\VisualStudio\VC\19.0\x86\x86", "Compiler", "") as String;
-                    String compilerFolder = Path.GetDirectoryName(registryCompilerPath);
+                    String compilerFolder = Path.GetDirectoryName(RegistryVcCompilerPath);
                     _CompilerPath = compilerFolder +
                         ((ProcessorArchitecture == TargetPlatform.ARM) ?
                             @"\x86_arm\cl.exe" :
@@ -125,8 +136,7 @@ namespace Python
             {
                 if (_LinkerPath == null)
                 {
-                    String registryCompilerPath = Registry.GetValue(@"HKEY_LOCAL_MACHINE\Software\Microsoft\VisualStudio\VC\19.0\x86\x86", "Compiler", "") as String;
-                    String compilerFolder = Path.GetDirectoryName(registryCompilerPath);
+                    String compilerFolder = Path.GetDirectoryName(RegistryVcCompilerPath);
                     _LinkerPath = compilerFolder + @"\link.exe";
                 }
                 return _LinkerPath;
