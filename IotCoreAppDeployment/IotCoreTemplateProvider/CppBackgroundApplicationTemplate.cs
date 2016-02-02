@@ -47,7 +47,6 @@ namespace IotCoreTemplateProvider
             contents.Add(TemplateFileFromResources(@"AppxManifest.xml"));
             contents.Add(TemplateFileFromResources(@"resources.pri"));
             contents.Add(TemplateFileFromResources(@"TemporaryKey.pfx"));
-            contents.Add(TemplateFileFromResources(@"TemporaryKey.pfx.cer"));
             contents.Add(TemplateFileFromResources(@"Assets\LockScreenLogo.scale-200.png"));
             contents.Add(TemplateFileFromResources(@"Assets\SplashScreen.scale-200.png"));
             contents.Add(TemplateFileFromResources(@"Assets\Square44x44Logo.scale-200.png"));

@@ -3,6 +3,7 @@ using System.IO;
 using IotCoreAppProjectExtensibility;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Python
 {
@@ -186,5 +187,9 @@ namespace Python
             return new List<FileStreamInfo>();
         }
 
+        public async Task<bool> BuildAsync(String outputFolder, StreamWriter logging)
+        {
+            return true;
+        }
     }
 }

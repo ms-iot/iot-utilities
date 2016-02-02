@@ -30,7 +30,7 @@ namespace IotCoreAppDeployment
 
                     commandLineParser.Setup<string>('s')
                         .WithDescription("Specify source input")
-                        .Callback(value => { source = value; })
+                        .Callback(value => { source = new FileInfo(value).FullName; })
                         .Required();
 
                     commandLineParser.Setup<string>('n')
@@ -349,7 +349,21 @@ namespace IotCoreAppDeployment
             OutputMessage("... project files tailored to current deployment.");
             #endregion
 
-            // 4. Add IProject-specific capabilities
+            // 4. Do build step if needed (compiling/generation/etc)
+            #region Do IProject build
+
+            OutputMessage("... build started");
+            var buildSuccess = await project.BuildAsync(outputFolder, outputWriter);
+            if (!buildSuccess)
+            {
+                OutputMessage("... build failed");
+                return false;
+            }
+            OutputMessage("... build succeeded");
+
+            #endregion
+
+            // 5. Add IProject-specific capabilities
             #region Add capabilities
             var capabilityAdditions = project.GetCapabilities();
             foreach (var capability in capabilityAdditions)
@@ -358,7 +372,7 @@ namespace IotCoreAppDeployment
             }
             #endregion
 
-            // 5. Create mapping file used to build APPX
+            // 6. Create mapping file used to build APPX
             #region Create APPX map file
             var mapFile = outputFolder + @"\main.map.txt";
             var resourceMetadata = new List<String>();
@@ -383,7 +397,7 @@ namespace IotCoreAppDeployment
             OutputMessage(String.Format("... APPX map file created: {0}", mapFile));
             #endregion
 
-            // 6. Create APPX file
+            // 7. Create APPX file
             #region Call MakeAppx.exe
             String makeAppxArgsFormat = "pack /l /h sha256 /m \"{0}\" /f \"{1}\" /o /p \"{2}\"";
             String makeAppxArgs = String.Format(makeAppxArgsFormat, outputFolder + @"\AppxManifest.xml", mapFile, outputAppx);
@@ -397,7 +411,7 @@ namespace IotCoreAppDeployment
 
             #endregion
 
-            // 7. Sign APPX file using shared PFX
+            // 8. Sign APPX file using shared PFX
             #region Call SignTool.exe
             String pfxFile = outputFolder + @"\TemporaryKey.pfx";
             String signToolArgsFormat = "sign /fd sha256 /f \"{0}\" \"{1}\"";
@@ -411,7 +425,7 @@ namespace IotCoreAppDeployment
 
             #endregion
 
-            // 8. Get CER file from shared PFX
+            // 9. Get CER file from shared PFX
             #region Create CER file from PFX
             String getCertArgsFormat = "\"Get-PfxCertificate -FilePath \'{0}\' | Export-Certificate -FilePath \'{1}\' -Type CERT\"";
             String getCertArgs = String.Format(getCertArgsFormat, pfxFile, outputCer);
@@ -424,7 +438,7 @@ namespace IotCoreAppDeployment
             OutputMessage(String.Format("        logfile: {0}", powershellLogfile));
             #endregion
 
-            // 9. Copy appropriate Dependencies from IProject
+            // 10. Copy appropriate Dependencies from IProject
             #region Gather Dependencies
 
             var dependencies = project.GetDependencies(supportedProjects.DependencyProviders);
@@ -523,7 +537,7 @@ namespace IotCoreAppDeployment
 
             if (Directory.Exists(outputFolder))
             {
-                Directory.Delete(outputFolder, true);
+                //Directory.Delete(outputFolder, true);
             }
 
             #endregion

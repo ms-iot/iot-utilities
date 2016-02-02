@@ -3,6 +3,7 @@ using System.IO;
 using IotCoreAppProjectExtensibility;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace NodeJs
 {
@@ -151,5 +152,9 @@ namespace NodeJs
             return new List<FileStreamInfo>();
         }
 
+        public async Task<bool> BuildAsync(String outputFolder, StreamWriter logging)
+        {
+            return true;
+        }
     }
 }

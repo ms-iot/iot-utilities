@@ -76,6 +76,10 @@
     <None Include="Properties\app.manifest" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Ino\Ino.csproj">
+      <Project>{599643c7-cd98-4dca-8d85-1fa60d877b74}</Project>
+      <Name>Ino</Name>
+    </ProjectReference>
     <ProjectReference Include="..\IotCoreAppProjectExtensibility\IotCoreAppProjectExtensibility.csproj">
       <Project>{a00a9068-40cd-45c7-98e1-2b7c014f067c}</Project>
       <Name>IotCoreAppProjectExtensibility</Name>
