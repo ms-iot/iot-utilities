@@ -60,8 +60,8 @@
     <EmbeddedResource Include="Resources\StartupTask.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\arduino.zip" />
-    <EmbeddedResource Include="Resources\lightning.zip" />
+    <EmbeddedResource Include="Resources\microsoft.iot.lightning.1.0.2-alpha.nupkg" />
+    <EmbeddedResource Include="Resources\microsoft.iot.sdkfromarduino.1.1.1.nupkg" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

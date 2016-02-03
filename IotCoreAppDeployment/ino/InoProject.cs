@@ -317,7 +317,8 @@ namespace Ino
             var compilerArgsBuilder = new StringBuilder();
             compilerArgsBuilder.Append("/c ");
             compilerArgsBuilder.Append("/I\"" + sourceRoot + "\\\\\" ");
-            compilerArgsBuilder.Append("/I\"" + cachedRoot + "\\include\\\\\" ");
+            compilerArgsBuilder.Append("/I\"" + cachedRoot + "\\arduino\\build\\native\\include\\\\\" ");
+            compilerArgsBuilder.Append("/I\"" + cachedRoot + "\\lightning\\build\\native\\include\\\\\" ");
             compilerArgsBuilder.Append("/I\"" + VCIncludePath + "\\\\\" ");
             compilerArgsBuilder.Append("/I\"" + SdkRoot + @"Include\" + SdkVersionString + "\\um\\\\\" ");
             compilerArgsBuilder.Append("/I\"" + SdkRoot + @"Include\" + SdkVersionString + "\\shared\\\\\" ");
@@ -430,7 +431,18 @@ namespace Ino
             return true;
         }
 
-        private bool CopyResourceFileBuildFolder(String resourceName, String outputFolder, bool isZip)
+        private bool CopyResourceFileBuildFolderAndUnzip(String resourceName, String outputFolder, String unzipFolder)
+        {
+            var status = CopyResourceFileBuildFolder(resourceName, outputFolder);
+            if (!status)
+            {
+                return false;
+            }
+
+            ZipFile.ExtractToDirectory(outputFolder + @"\" + resourceName, outputFolder + "\\" + unzipFolder);
+            return Directory.Exists(outputFolder + "\\" + unzipFolder);
+        }
+        private bool CopyResourceFileBuildFolder(String resourceName, String outputFolder)
         {
             var names = Assembly.GetExecutingAssembly().GetManifestResourceNames();
             var resource = String.Format(@"Ino.Resources.{0}", resourceName);
@@ -440,17 +452,7 @@ namespace Ino
                 Stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resource)
             }.Apply(outputFolder);
 
-            if (!File.Exists(outputFolder + "\\" + resourceName))
-            {
-                return false;
-            }
-
-            if (isZip)
-            {
-                ZipFile.ExtractToDirectory(outputFolder + @"\" + resourceName, outputFolder);
-            }
-
-            return true;
+            return File.Exists(outputFolder + "\\" + resourceName);
         }
 
         private async Task<bool> Compile(String outputFolder, StreamWriter logging)
@@ -486,14 +488,14 @@ namespace Ino
             bool success = false;
 
             // Get PCH.H from resources
-            success = CopyResourceFileBuildFolder("pch.h", outputFolder, false);
+            success = CopyResourceFileBuildFolder("pch.h", outputFolder);
             if (!success)
             {
                 Debug.WriteLine(String.Format("Failed to copy pch.h from resources"));
                 return false;
             }
             // Get StartupTask.cpp from resources
-            success = CopyResourceFileBuildFolder("StartupTask.cpp", outputFolder, false);
+            success = CopyResourceFileBuildFolder("StartupTask.cpp", outputFolder);
             if (!success)
             {
                 Debug.WriteLine(String.Format("Failed to copy StartupTask.cpp from resources"));
@@ -510,54 +512,57 @@ namespace Ino
             {
                 Directory.CreateDirectory(versionedConfigCache);
             }
-            if (!Directory.Exists(versionedCache + "\\include") || !Directory.Exists(versionedCache + "\\source"))
+            if (!Directory.Exists(versionedCache + "\\arduino"))
             {
                 // Get arduino sources from resources
-                success = CopyResourceFileBuildFolder("arduino.zip", versionedCache, true);
+                success = CopyResourceFileBuildFolderAndUnzip("microsoft.iot.sdkfromarduino.1.1.1.nupkg", versionedCache, "arduino");
                 if (!success)
                 {
-                    Debug.WriteLine(String.Format("Failed to copy arduino.zip from resources and unzip it"));
+                    Debug.WriteLine(String.Format("Failed to copy microsoft.iot.sdkfromarduino.1.1.1.nupkg from resources and unzip it"));
                     return false;
                 }
+            }
+            if (!Directory.Exists(versionedCache + "\\lightning"))
+            {
                 // Get lightning sources from resources
-                success = CopyResourceFileBuildFolder("lightning.zip", versionedCache, true);
+                success = CopyResourceFileBuildFolderAndUnzip("microsoft.iot.lightning.1.0.2-alpha.nupkg", versionedCache, "lightning");
                 if (!success)
                 {
-                    Debug.WriteLine(String.Format("Failed to copy lightning.zip from resources and unzip it"));
+                    Debug.WriteLine(String.Format("Failed to copy microsoft.iot.lightning.1.0.2-alpha.nupkg from resources and unzip it"));
                     return false;
                 }
             }
 
             String[] dependencySourceCodeToBuild = new String[] {
-                versionedCache + "\\source\\IPAddress.cpp",
-                versionedCache + "\\source\\LiquidCrystal.cpp",
-                versionedCache + "\\source\\Print.cpp",
-                versionedCache + "\\source\\Stepper.cpp",
-                versionedCache + "\\source\\Stream.cpp",
-                versionedCache + "\\source\\WString.cpp",
-                versionedCache + "\\source\\arduino.cpp",
-                versionedCache + "\\source\\BoardPins.cpp",
-                versionedCache + "\\source\\BcmI2cController.cpp",
-                versionedCache + "\\source\\BcmSpiController.cpp",
-                versionedCache + "\\source\\BtI2cController.cpp",
-                versionedCache + "\\source\\BtSpiController.cpp",
-                versionedCache + "\\source\\CY8C9540ASupport.cpp",
-                versionedCache + "\\source\\DmapSupport.cpp",
-                versionedCache + "\\source\\DmapErrors.cpp",
-                versionedCache + "\\source\\eeprom.cpp",
-                versionedCache + "\\source\\GpioController.cpp",
-                versionedCache + "\\source\\HardwareSerial.cpp",
-                versionedCache + "\\source\\I2c.cpp",
-                versionedCache + "\\source\\I2cController.cpp",
-                versionedCache + "\\source\\I2cTransaction.cpp",
-                versionedCache + "\\source\\NetworkSerial.cpp",
-                versionedCache + "\\source\\PCA9685Support.cpp",
-                versionedCache + "\\source\\PCAL9535ASupport.cpp",
-                versionedCache + "\\source\\PulseIn.cpp",
-                versionedCache + "\\source\\Servo.cpp",
-                versionedCache + "\\source\\Spi.cpp",
-                versionedCache + "\\source\\SpiController.cpp",
-                versionedCache + "\\source\\QuarkSpiController.cpp",
+                versionedCache + "\\arduino\\build\\native\\source\\IPAddress.cpp",
+                versionedCache + "\\arduino\\build\\native\\source\\LiquidCrystal.cpp",
+                versionedCache + "\\arduino\\build\\native\\source\\Print.cpp",
+                versionedCache + "\\arduino\\build\\native\\source\\Stepper.cpp",
+                versionedCache + "\\arduino\\build\\native\\source\\Stream.cpp",
+                versionedCache + "\\arduino\\build\\native\\source\\WString.cpp",
+                versionedCache + "\\lightning\\build\\native\\source\\arduino.cpp",
+                versionedCache + "\\lightning\\build\\native\\source\\BoardPins.cpp",
+                versionedCache + "\\lightning\\build\\native\\source\\BcmI2cController.cpp",
+                versionedCache + "\\lightning\\build\\native\\source\\BcmSpiController.cpp",
+                versionedCache + "\\lightning\\build\\native\\source\\BtI2cController.cpp",
+                versionedCache + "\\lightning\\build\\native\\source\\BtSpiController.cpp",
+                versionedCache + "\\lightning\\build\\native\\source\\CY8C9540ASupport.cpp",
+                versionedCache + "\\lightning\\build\\native\\source\\DmapSupport.cpp",
+                versionedCache + "\\lightning\\build\\native\\source\\DmapErrors.cpp",
+                versionedCache + "\\lightning\\build\\native\\source\\eeprom.cpp",
+                versionedCache + "\\lightning\\build\\native\\source\\GpioController.cpp",
+                versionedCache + "\\lightning\\build\\native\\source\\HardwareSerial.cpp",
+                versionedCache + "\\lightning\\build\\native\\source\\I2c.cpp",
+                versionedCache + "\\lightning\\build\\native\\source\\I2cController.cpp",
+                versionedCache + "\\lightning\\build\\native\\source\\I2cTransaction.cpp",
+                versionedCache + "\\lightning\\build\\native\\source\\NetworkSerial.cpp",
+                versionedCache + "\\lightning\\build\\native\\source\\PCA9685Support.cpp",
+                versionedCache + "\\lightning\\build\\native\\source\\PCAL9535ASupport.cpp",
+                versionedCache + "\\lightning\\build\\native\\source\\PulseIn.cpp",
+                versionedCache + "\\lightning\\build\\native\\source\\Servo.cpp",
+                versionedCache + "\\lightning\\build\\native\\source\\Spi.cpp",
+                versionedCache + "\\lightning\\build\\native\\source\\SpiController.cpp",
+                versionedCache + "\\lightning\\build\\native\\source\\QuarkSpiController.cpp",
             };
 
             // Compile the arduino and lightning sources

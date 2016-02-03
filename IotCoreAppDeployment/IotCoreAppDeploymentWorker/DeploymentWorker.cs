@@ -107,6 +107,11 @@ namespace IotCoreAppDeployment
                         .WithDescription("Specify PowerShell.exe full path ... if this is not provided, the registry is queried")
                         .Callback(value => { powershellPath = value; });
 
+                    commandLineParser.Setup<bool>('d')
+                        .WithDescription("If this is specified, the temp folder will not be deleted (this is useful for diagnosing problems).")
+                        .Callback(value => { keepTempFolder = value; })
+                        .SetDefault(false);
+
                     commandLineParser.SetupHelp(new String[] { "?", "help", "h" })
                         .Callback(text =>
                         {
@@ -141,6 +146,7 @@ namespace IotCoreAppDeployment
         private String signToolPath = null;
         private String powershellPath = null;
         private String copyOutputToFolder = null;
+        private bool keepTempFolder = false;
         private TargetPlatform targetType = TargetPlatform.ARM;
         private SdkVersion sdk = SdkVersion.SDK_10_0_10586_0;
         private DependencyConfiguration configuration = DependencyConfiguration.Debug;
@@ -406,7 +412,7 @@ namespace IotCoreAppDeployment
 
         private bool CopyFileAndValidate(String from, String to)
         {
-            File.Copy(from, to);
+            File.Copy(from, to, true);
             if (!File.Exists(to))
             {
                 Debug.WriteLine(String.Format("Failed to copy {0} to {1}", from, to));
@@ -423,11 +429,11 @@ namespace IotCoreAppDeployment
                 return true;
             }
 
-            if (Directory.Exists(copyOutputToFolder))
+            if (!Directory.Exists(copyOutputToFolder))
             {
-                Directory.Delete(copyOutputToFolder, true);
+                Directory.CreateDirectory(copyOutputToFolder);
             }
-            Directory.CreateDirectory(copyOutputToFolder);
+
             // Copy APPX
             var success = CopyFileAndValidate(outputAppx, copyOutputToFolder + @"\" + appxFilename);
             if (!success)
@@ -636,8 +642,9 @@ namespace IotCoreAppDeployment
             outputFolder = Path.GetTempPath() + Path.GetRandomFileName();
 
             String artifactsFolder = outputFolder + @"\output";
-            String appxFilename = project.IdentityName + ".appx";
-            String cerFilename = project.IdentityName + ".cer";
+            String filename = project.IdentityName + "_" + targetType + "_" + configuration;
+            String appxFilename = filename + ".appx";
+            String cerFilename = filename + ".cer";
             String outputAppx = artifactsFolder + @"\" + appxFilename;
             String outputCer = artifactsFolder + @"\" + cerFilename;
 
@@ -689,7 +696,7 @@ namespace IotCoreAppDeployment
         {
             #region Cleanup
 
-            if (Directory.Exists(outputFolder))
+            if (!keepTempFolder && Directory.Exists(outputFolder))
             {
                 Directory.Delete(outputFolder, true);
             }
