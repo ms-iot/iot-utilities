@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Xml;
 
 namespace IotCoreAppProjectExtensibility
@@ -11,9 +12,14 @@ namespace IotCoreAppProjectExtensibility
         public String DeviceId { set; get; }
         public String FunctionType { set; get; }
 
-        public void ApplyToContent(String rootFolder)
+        public bool ApplyToContent(String rootFolder)
         {
             String fullPath = rootFolder + @"\AppxManifest.xml";
+            if (!File.Exists(fullPath))
+            {
+                return false;
+            }
+
             var document = new XmlDocument();
             document.Load(fullPath);
 
@@ -84,6 +90,7 @@ namespace IotCoreAppProjectExtensibility
 
 
             document.Save(fullPath);
+            return true;
         }
     }
 }

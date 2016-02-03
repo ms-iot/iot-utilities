@@ -10,11 +10,11 @@ using System.Threading;
 using Microsoft.Win32;
 using System.IO.Compression;
 
-namespace Python
+namespace Ino
 {
     public class InoProject : IProject
     {
-        public String Name { get { return "Arduino Project"; } }
+        public String Name { get { return "Arduino Wiring Project"; } }
         public String IdentityName { get { return "ino-uwp"; } }
 
         public bool IsSourceSupported(String source)
@@ -48,8 +48,8 @@ namespace Python
         public DependencyConfiguration DependencyConfiguration { set; get; }
         public String SourceInput { set; get; }
 
-        private String IdentityPublisher { get { return "CN=" + "MSFT" /*Environment.UserName*/; } }
-        private String PropertiesPublisherDisplayName { get { return "MSFT" /*Environment.UserName*/; } }
+        private String IdentityPublisher { get { return "CN=" + PropertiesPublisherDisplayName; } }
+        private String PropertiesPublisherDisplayName { get { return "MSFT"; } }
 
         private String _PhoneIdentityGuid = null;
         private String PhoneIdentityGuid
@@ -227,10 +227,11 @@ namespace Python
             return new List<FileStreamInfo>();
         }
 
-        public void GetAppxMapContents(List<String> resourceMetadata, List<String> files, String outputFolder)
+        public bool GetAppxMapContents(List<String> resourceMetadata, List<String> files, String outputFolder)
         {
             files.Add("\"" + outputFolder + "\\" + PropertiesDisplayName + ".dll\" \"" + PropertiesDisplayName + ".dll\"");
             files.Add("\"" + outputFolder + "\\" + PropertiesDisplayName + ".winmd\" \"" + PropertiesDisplayName + ".winmd\"");
+            return true;
         }
 
         public List<FileStreamInfo> GetDependencies(List<IDependencyProvider> availableDependencyProviders)

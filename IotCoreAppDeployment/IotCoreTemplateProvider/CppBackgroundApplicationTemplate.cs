@@ -24,13 +24,11 @@ namespace IotCoreTemplateProvider
             };
         }
 
-        public void GetAppxMapContents(List<String> resourceMetadata, List<String> files, String outputFolder)
+        public bool GetAppxMapContents(List<String> resourceMetadata, List<String> files, String outputFolder)
         {
             resourceMetadata.Add("\"ResourceDimensions\"		\"scale-200\"");
             resourceMetadata.Add("\"ResourceDimensions\"        \"language-en-us\"");
             resourceMetadata.Add("\"ResourceDimensions\"        \"language-en-US\"");
-
-
             files.Add("\"" + outputFolder + "\\resources.pri\"         \"resources.pri\"");
             files.Add("\"" + outputFolder + "\\Assets\\Wide310x150Logo.scale-200.png\"            \"Assets\\Wide310x150Logo.scale-200.png\"");
             files.Add("\"" + outputFolder + "\\Assets\\StoreLogo.png\"            \"Assets\\StoreLogo.png\"");
@@ -39,6 +37,7 @@ namespace IotCoreTemplateProvider
             files.Add("\"" + outputFolder + "\\Assets\\Square150x150Logo.scale-200.png\"          \"Assets\\Square150x150Logo.scale-200.png\"");
             files.Add("\"" + outputFolder + "\\Assets\\SplashScreen.scale-200.png\"           \"Assets\\SplashScreen.scale-200.png\"");
             files.Add("\"" + outputFolder + "\\Assets\\LockScreenLogo.scale-200.png\"         \"Assets\\LockScreenLogo.scale-200.png\"");
+            return true;
         }
 
         public List<FileStreamInfo> GetTemplateContents()

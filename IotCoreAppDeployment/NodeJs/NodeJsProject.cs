@@ -31,8 +31,8 @@ namespace NodeJs
         public DependencyConfiguration DependencyConfiguration { set; get; }
         public String SourceInput { set; get; }
 
-        private String IdentityPublisher { get { return "CN=" + "MSFT" /*Environment.UserName*/; } }
-        private String PropertiesPublisherDisplayName { get { return "MSFT" /*Environment.UserName*/; } }
+        private String IdentityPublisher { get { return "CN=" + PropertiesPublisherDisplayName; } }
+        private String PropertiesPublisherDisplayName { get { return "MSFT"; } }
 
         private String _PhoneIdentityGuid = null;
         private String PhoneIdentityGuid
@@ -92,7 +92,7 @@ namespace NodeJs
             return changes;
         }
 
-        FileStreamInfo FileFromResources(String fileName)
+        private FileStreamInfo FileFromResources(String fileName)
         {
             var platformString = "";
             switch (ProcessorArchitecture)
@@ -127,7 +127,7 @@ namespace NodeJs
             return contents;
         }
 
-        public void GetAppxMapContents(List<String> resourceMetadata, List<String> files, String outputFolder)
+        public bool GetAppxMapContents(List<String> resourceMetadata, List<String> files, String outputFolder)
         {
             files.Add("\"" + outputFolder + "\\node_modules\\uwp.node\"         \"node_modules\\uwp.node\"");
             files.Add("\"" + outputFolder + "\\msvcp140.dll\"         \"msvcp140.dll\"");
@@ -137,6 +137,7 @@ namespace NodeJs
             files.Add("\"" + outputFolder + "\\startupinfo.xml\"         \"startupinfo.xml\"");
             files.Add("\"" + outputFolder + "\\vccorlib140.dll\"         \"vccorlib140.dll\"");
             files.Add("\"" + outputFolder + "\\vcruntime140.dll\"         \"vcruntime140.dll\"");
+            return true;
         }
 
         public List<FileStreamInfo> GetDependencies(List<IDependencyProvider> availableDependencyProviders)

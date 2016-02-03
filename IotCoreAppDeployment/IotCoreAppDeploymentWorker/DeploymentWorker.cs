@@ -213,7 +213,7 @@ namespace IotCoreAppDeployment
                 String errors = process.StandardError.ReadToEnd();
                 if (errors != null && errors.Length != 0)
                 {
-                    logStream.WriteLine("Errors:");
+                    logStream.WriteLine("\n\n\n\nErrors:");
                     logStream.Write(errors);
                 }
                 logStream.WriteLine("\n\n\n\nFull Output:");
@@ -230,7 +230,332 @@ namespace IotCoreAppDeployment
             OutputMessage("       and -signtool.");
         }
 
-        async Task<bool> CreateAndDeployApp()
+        private bool CopyBaseTemplateContents(ITemplate template)
+        {
+            var templateContents = template.GetTemplateContents();
+            foreach (var content in templateContents)
+            {
+                var success = content.Apply(outputFolder);
+                if (!success)
+                {
+                    Debug.WriteLine(String.Format("Failed to get {0} from resources.", content.AppxRelativePath));
+                    return false;
+                }
+            }
+            OutputMessage(String.Format("... base project files found and copied: {0}", outputFolder));
+            return true;
+        }
+
+        private bool CopyProjectFiles(IProject project)
+        {
+            var appxContents = project.GetAppxContents();
+            foreach (var content in appxContents)
+            {
+                var success = content.Apply(outputFolder);
+                if (!success)
+                {
+                    Debug.WriteLine(String.Format("Failed to get {0} from resources.", content.AppxRelativePath));
+                    return false;
+                }
+            }
+            OutputMessage(String.Format("... project files found and copied: {0}", outputFolder));
+            return true;
+        }
+
+        private bool SpecializeAppxManifest(IProject project)
+        {
+            var appxManifestChangess = project.GetAppxContentChanges();
+            foreach (var change in appxManifestChangess)
+            {
+                var success = change.ApplyToContent(outputFolder);
+                if (!success)
+                {
+                    Debug.WriteLine("Failed to make all changes to AppxManifest.xml.");
+                    return false;
+                }
+            }
+            OutputMessage("... project files tailored to current deployment.");
+            return true;
+        }
+
+        private async Task<bool> BuildProjectAsync(IProject project)
+        {
+            OutputMessage("... build started");
+            var buildSuccess = await project.BuildAsync(outputFolder, outputWriter);
+            if (!buildSuccess)
+            {
+                OutputMessage("... build failed");
+                return false;
+            }
+            OutputMessage("... build succeeded");
+            return true;
+        }
+
+        private bool AddCapabilitiesToAppxManifest(IProject project)
+        {
+            var capabilityAdditions = project.GetCapabilities();
+            foreach (var capability in capabilityAdditions)
+            {
+                var success = capability.ApplyToContent(outputFolder);
+                if (!success)
+                {
+                    Debug.WriteLine("Failed to add all capabilities to AppxManifest.xml.");
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private bool CreateAppxMapFile(ITemplate template, IProject project, String mapFile)
+        {
+            var resourceMetadata = new List<String>();
+            var appxFiles = new List<String>();
+            bool success = template.GetAppxMapContents(resourceMetadata, appxFiles, outputFolder);
+            if (!success)
+            {
+                Debug.WriteLine("Failed to get the template appx map contents.");
+                return false;
+            }
+            success = project.GetAppxMapContents(resourceMetadata, appxFiles, outputFolder);
+            if (!success)
+            {
+                Debug.WriteLine("Failed to get the project appx map contents.");
+                return false;
+            }
+
+            using (var mapFileStream = File.Create(mapFile))
+            {
+                using (var mapFileWriter = new StreamWriter(mapFileStream))
+                {
+                    mapFileWriter.WriteLine("[ResourceMetadata]");
+                    foreach (var md in resourceMetadata)
+                    {
+                        mapFileWriter.WriteLine(md);
+                    }
+                    mapFileWriter.WriteLine("");
+                    mapFileWriter.WriteLine("[Files]");
+                    foreach (var appxFile in appxFiles)
+                    {
+                        mapFileWriter.WriteLine(appxFile);
+                    }
+                }
+            }
+            OutputMessage(String.Format("... APPX map file created: {0}", mapFile));
+            return true;
+        }
+
+        private bool CallMakeAppx(String makeAppxCmd, String mapFile, String outputAppx)
+        {
+            String makeAppxArgsFormat = "pack /l /h sha256 /m \"{0}\" /f \"{1}\" /o /p \"{2}\"";
+            String makeAppxArgs = String.Format(makeAppxArgsFormat, outputFolder + @"\AppxManifest.xml", mapFile, outputAppx);
+            String makeAppxLogfile = outputFolder + @"\makeappx.log";
+
+            ExecuteExternalProcess(makeAppxCmd, makeAppxArgs, makeAppxLogfile);
+            if (!File.Exists(outputAppx))
+            {
+                return false;
+            }
+
+            OutputMessage("... APPX file created");
+            OutputMessage(String.Format("        {0}", outputAppx));
+            OutputMessage(String.Format("        logfile: {0}", makeAppxLogfile));
+            return true;
+        }
+
+        private bool SignAppx(String signToolCmd, String outputAppx, String pfxFile)
+        {
+            String signToolArgsFormat = "sign /fd sha256 /f \"{0}\" \"{1}\"";
+            String signToolArgs = String.Format(signToolArgsFormat, pfxFile, outputAppx);
+            String signToolLogfile = outputFolder + @"\signtool.log";
+
+            ExecuteExternalProcess(signToolCmd, signToolArgs, signToolLogfile);
+            // TODO: how to validate this?
+
+            OutputMessage(String.Format("... APPX file signed with PFX", signToolLogfile));
+            OutputMessage(String.Format("        logfile: {0}", signToolLogfile));
+            return true;
+        }
+
+        private bool CreateCertFromPfx(String powershellCmd, String pfxFile, String outputCer)
+        {
+            String getCertArgsFormat = "\"Get-PfxCertificate -FilePath \'{0}\' | Export-Certificate -FilePath \'{1}\' -Type CERT\"";
+            String getCertArgs = String.Format(getCertArgsFormat, pfxFile, outputCer);
+            String powershellLogfile = outputFolder + @"\powershell.log";
+
+            ExecuteExternalProcess(powershellCmd, getCertArgs, powershellLogfile);
+
+            OutputMessage("... CER file generated from PFX");
+            OutputMessage(String.Format("        {0}", outputCer));
+            OutputMessage(String.Format("        logfile: {0}", powershellLogfile));
+            return true;
+        }
+
+        private bool CopyDependencyAppxFiles(IProject project, List<FileStreamInfo> dependencies, String artifactsFolder)
+        {
+            foreach (var dependency in dependencies)
+            {
+                var success = dependency.Apply(artifactsFolder);
+                if (!success)
+                {
+                    return false;
+                }
+            }
+            OutputMessage("... dependencies copied into place");
+            return true;
+        }
+
+        private bool CopyFileAndValidate(String from, String to)
+        {
+            File.Copy(from, to);
+            if (!File.Exists(to))
+            {
+                Debug.WriteLine(String.Format("Failed to copy {0} to {1}", from, to));
+                return false;
+            }
+            return true;
+        }
+
+        private bool CopyArtifacts(String outputAppx, String appxFilename, String outputCer, String cerFilename, List<FileStreamInfo> dependencies)
+        {
+            // If copy is not requested, skip
+            if (null == copyOutputToFolder)
+            {
+                return true;
+            }
+
+            if (Directory.Exists(copyOutputToFolder))
+            {
+                Directory.Delete(copyOutputToFolder, true);
+            }
+            Directory.CreateDirectory(copyOutputToFolder);
+            // Copy APPX
+            var success = CopyFileAndValidate(outputAppx, copyOutputToFolder + @"\" + appxFilename);
+            if (!success)
+            {
+                return false;
+            }
+            // Copy .cer
+            success = CopyFileAndValidate(outputCer, copyOutputToFolder + @"\" + cerFilename);
+            if (!success)
+            {
+                return false;
+            }
+            // Copy dependencies
+            foreach (var dependency in dependencies)
+            {
+                success = dependency.Apply(copyOutputToFolder);
+                if (!success)
+                {
+                    Debug.WriteLine(String.Format("Failed to copy dependency to {0}", copyOutputToFolder + "\\" + dependency.AppxRelativePath));
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private async Task<bool> DeployAppx(String outputAppx, String outputCer, List<FileStreamInfo> dependencies, String dependencyFolder, String identityName)
+        {
+            // Create list of all APPX and CER files for deployment
+            var files = new List<FileInfo>();
+            files.Add(new FileInfo(outputAppx));
+            files.Add(new FileInfo(outputCer));
+            foreach (var dependency in dependencies)
+            {
+                files.Add(new FileInfo(dependencyFolder + @"\" + dependency.AppxRelativePath));
+            }
+
+            // Call WEBB Rest APIs to deploy
+            var packageFullName = String.Format(packageFullNameFormat, identityName, targetType.ToString());
+            var webbHelper = new WebbHelper();
+            OutputMessage("... starting to deploy certificate, APPX, and dependencies");
+            // Attempt to uninstall existing package if found
+            var result = await webbHelper.UninstallAppAsync(packageFullName, targetName, credentials);
+            if (result == HttpStatusCode.OK)
+            {
+                // result == OK means the package was uninstalled.
+                OutputMessage(String.Format("... previously deployed {0} uninstalled successfully", packageFullName));
+            }
+            else
+            {
+                // result != OK could mean that the package wasn't already installed
+                //           or it could mean that there was a problem with the uninstall
+                //           request.
+                OutputMessage(String.Format("... previous installation {0} was not uninstalled (if it wasn't previously installed, this is expected)", packageFullName));
+            }
+            // Deploy new APPX, cert, and dependency files
+            result = await webbHelper.DeployAppAsync(files, targetName, credentials);
+            if (result == HttpStatusCode.Accepted)
+            {
+                await webbHelper.PollInstallStateAsync(targetName, credentials);
+                OutputMessage(String.Format("... deployment {0} finished.", packageFullName));
+
+                OutputMessage("\r\n\r\n***");
+                OutputMessage(String.Format("*** PackageFullName = {0}", packageFullName));
+                OutputMessage("***\r\n\r\n");
+                return true;
+            }
+            else
+            {
+                OutputMessage(String.Format("... deployment {0} failed.", packageFullName));
+                return false;
+            }
+        }
+
+        private async Task<bool> CreateAppx(ITemplate template, IProject project, String makeAppxCmd, String outputAppx)
+        {
+            // Copy generic base template files
+            bool success = CopyBaseTemplateContents(template);
+            if (!success)
+            {
+                return false;
+            }
+
+            // Copy IProject-specific (but still generic) files
+            success = CopyProjectFiles(project);
+            if (!success)
+            {
+                return false;
+            }
+
+            // Make changes to the files to tailor them to the specific user input
+            success = SpecializeAppxManifest(project);
+            if (!success)
+            {
+                return false;
+            }
+
+            // Do build step if needed (compiling/generation/etc)
+            success = await BuildProjectAsync(project);
+            if (!success)
+            {
+                return false;
+            }
+
+            // Add IProject-specific capabilities
+            success = AddCapabilitiesToAppxManifest(project);
+            if (!success)
+            {
+                return false;
+            }
+
+            // Create mapping file used to build APPX
+            var mapFile = outputFolder + @"\main.map.txt";
+            success = CreateAppxMapFile(template, project, mapFile);
+            if (!success)
+            {
+                return false;
+            }
+
+            // Create APPX file
+            success = CallMakeAppx(makeAppxCmd, mapFile, outputAppx);
+            if (!success)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        private async Task<bool> CreateAndDeployApp()
         {
             #region Find Template and Project from available providers
 
@@ -308,7 +633,6 @@ namespace IotCoreAppDeployment
 
             #endregion
 
-            #region Create APPX
             outputFolder = Path.GetTempPath() + Path.GetRandomFileName();
 
             String artifactsFolder = outputFolder + @"\output";
@@ -319,210 +643,40 @@ namespace IotCoreAppDeployment
 
             Directory.CreateDirectory(artifactsFolder);
 
-            // 1. Copy generic base template files
-            #region Set up base template contents
-            var templateContents = template.GetTemplateContents();
-            foreach (var content in templateContents)
+            var success = await CreateAppx(template, project, makeAppxCmd, outputAppx);
+            if (!success)
             {
-                content.Apply(outputFolder);
-            }
-            OutputMessage(String.Format("... base project files found and copied: {0}", outputFolder));
-            #endregion
-
-            // 2. Copy IProject-specific (but still generic) files
-            #region Add project specific content
-            var appxContents = project.GetAppxContents();
-            foreach (var content in appxContents)
-            {
-                content.Apply(outputFolder);
-            }
-            OutputMessage(String.Format("... project files found and copied: {0}", outputFolder));
-            #endregion
-
-            // 3. Make changes to the files to tailor them to the specific user input
-            #region Make changes to generic project files
-            var appxManifestChangess = project.GetAppxContentChanges();
-            foreach (var change in appxManifestChangess)
-            {
-                change.ApplyToContent(outputFolder);
-            }
-            OutputMessage("... project files tailored to current deployment.");
-            #endregion
-
-            // 4. Do build step if needed (compiling/generation/etc)
-            #region Do IProject build
-
-            OutputMessage("... build started");
-            var buildSuccess = await project.BuildAsync(outputFolder, outputWriter);
-            if (!buildSuccess)
-            {
-                OutputMessage("... build failed");
                 return false;
             }
-            OutputMessage("... build succeeded");
 
-            #endregion
-
-            // 5. Add IProject-specific capabilities
-            #region Add capabilities
-            var capabilityAdditions = project.GetCapabilities();
-            foreach (var capability in capabilityAdditions)
-            {
-                capability.ApplyToContent(outputFolder);
-            }
-            #endregion
-
-            // 6. Create mapping file used to build APPX
-            #region Create APPX map file
-            var mapFile = outputFolder + @"\main.map.txt";
-            var resourceMetadata = new List<String>();
-            var appxFiles = new List<String>();
-            template.GetAppxMapContents(resourceMetadata, appxFiles, outputFolder);
-            project.GetAppxMapContents(resourceMetadata, appxFiles, outputFolder);
-            var mapFileStream = File.Create(mapFile);
-            using (var mapFileWriter = new StreamWriter(mapFileStream))
-            {
-                mapFileWriter.WriteLine("[ResourceMetadata]");
-                foreach (var md in resourceMetadata)
-                {
-                    mapFileWriter.WriteLine(md);
-                }
-                mapFileWriter.WriteLine("");
-                mapFileWriter.WriteLine("[Files]");
-                foreach (var appxFile in appxFiles)
-                {
-                    mapFileWriter.WriteLine(appxFile);
-                }
-            }
-            OutputMessage(String.Format("... APPX map file created: {0}", mapFile));
-            #endregion
-
-            // 7. Create APPX file
-            #region Call MakeAppx.exe
-            String makeAppxArgsFormat = "pack /l /h sha256 /m \"{0}\" /f \"{1}\" /o /p \"{2}\"";
-            String makeAppxArgs = String.Format(makeAppxArgsFormat, outputFolder + @"\AppxManifest.xml", mapFile, outputAppx);
-            String makeAppxLogfile = outputFolder + @"\makeappx.log";
-
-            ExecuteExternalProcess(makeAppxCmd, makeAppxArgs, makeAppxLogfile);
-
-            OutputMessage("... APPX file created");
-            OutputMessage(String.Format("        {0}", outputAppx));
-            OutputMessage(String.Format("        logfile: {0}", makeAppxLogfile));
-
-            #endregion
-
-            // 8. Sign APPX file using shared PFX
-            #region Call SignTool.exe
             String pfxFile = outputFolder + @"\TemporaryKey.pfx";
-            String signToolArgsFormat = "sign /fd sha256 /f \"{0}\" \"{1}\"";
-            String signToolArgs = String.Format(signToolArgsFormat, pfxFile, outputAppx);
-            String signToolLogfile = outputFolder + @"\signtool.log";
+            success = SignAppx(signToolCmd, outputAppx, pfxFile);
+            if (!success)
+            {
+                return false;
+            }
 
-            ExecuteExternalProcess(signToolCmd, signToolArgs, signToolLogfile);
-
-            OutputMessage(String.Format("... APPX file signed with PFX", signToolLogfile));
-            OutputMessage(String.Format("        logfile: {0}", signToolLogfile));
-
-            #endregion
-
-            // 9. Get CER file from shared PFX
-            #region Create CER file from PFX
-            String getCertArgsFormat = "\"Get-PfxCertificate -FilePath \'{0}\' | Export-Certificate -FilePath \'{1}\' -Type CERT\"";
-            String getCertArgs = String.Format(getCertArgsFormat, pfxFile, outputCer);
-            String powershellLogfile = outputFolder + @"\powershell.log";
-
-            ExecuteExternalProcess(powershellCmd, getCertArgs, powershellLogfile);
-
-            OutputMessage("... CER file generated from PFX");
-            OutputMessage(String.Format("        {0}", outputCer));
-            OutputMessage(String.Format("        logfile: {0}", powershellLogfile));
-            #endregion
-
-            // 10. Copy appropriate Dependencies from IProject
-            #region Gather Dependencies
+            success = CreateCertFromPfx(powershellCmd, pfxFile, outputCer);
+            if (!success)
+            {
+                return false;
+            }
 
             var dependencies = project.GetDependencies(supportedProjects.DependencyProviders);
-            foreach (var dependency in dependencies)
+            success = CopyDependencyAppxFiles(project, dependencies, artifactsFolder);
+            if (!success)
             {
-                dependency.Apply(artifactsFolder);
-            }
-            OutputMessage("... dependencies copied into place");
-
-            #endregion
-
-            #endregion
-
-            #region Deploy APPX
-
-            #region Create list of all APPX and CER files for deployment
-            var files = new List<FileInfo>();
-            files.Add(new FileInfo(outputAppx));
-            files.Add(new FileInfo(outputCer));
-            foreach (var dependency in dependencies)
-            {
-                files.Add(new FileInfo(artifactsFolder + @"\" + dependency.AppxRelativePath));
-            }
-            #endregion
-
-            #region Call WEBB Rest APIs to deploy
-            var packageFullName = String.Format(packageFullNameFormat, project.IdentityName, targetType.ToString());
-            var webbHelper = new WebbHelper();
-            OutputMessage("... starting to deploy certificate, APPX, and dependencies");
-            // Attempt to uninstall
-            var result = await webbHelper.UninstallAppAsync(packageFullName, targetName, credentials);
-            if (result == HttpStatusCode.OK)
-            {
-                // result == OK means the package was uninstalled.
-                OutputMessage(String.Format("... previously deployed {0} uninstalled successfully", packageFullName));
-            }
-            else
-            {
-                // result != OK could mean that the package wasn't already installed
-                //           or it could mean that there was a problem with the uninstall
-                //           request.
-                OutputMessage(String.Format("... previous installation {0} was not uninstalled (if it wasn't previously installed, this is expected)", packageFullName));
-            }
-            result = await webbHelper.DeployAppAsync(files, targetName, credentials);
-            if (result == HttpStatusCode.Accepted)
-            {
-                await webbHelper.PollInstallStateAsync(targetName, credentials);
-                OutputMessage(String.Format("... deployment {0} finished.", packageFullName));
-
-                OutputMessage("\r\n\r\n***");
-                OutputMessage(String.Format("*** PackageFullName = {0}", packageFullName));
-                OutputMessage("***\r\n\r\n");
-
-            }
-            else
-            {
-                OutputMessage(String.Format("... deployment {0} failed.", packageFullName));
+                return false;
             }
 
-            #endregion
-
-            #endregion
-
-            #region Copy artifacts if requested
-
-            if (null != copyOutputToFolder)
+            success = await DeployAppx(outputAppx, outputCer, dependencies, artifactsFolder, project.IdentityName);
+            if (!success)
             {
-                if (Directory.Exists(copyOutputToFolder))
-                {
-                    Directory.Delete(copyOutputToFolder, true);
-                }
-                Directory.CreateDirectory(copyOutputToFolder);
-                File.Copy(outputAppx, copyOutputToFolder + @"\" + appxFilename);
-                File.Copy(outputCer, copyOutputToFolder + @"\" + cerFilename);
-                foreach (var dependency in dependencies)
-                {
-                    dependency.Apply(copyOutputToFolder);
-                }
+                return false;
             }
 
-            #endregion
-
-
-            return (result == HttpStatusCode.Accepted);
+            success = CopyArtifacts(outputAppx, appxFilename, outputCer, cerFilename, dependencies);
+            return success;
         }
 
         DeploymentWorker(Stream outputStream)

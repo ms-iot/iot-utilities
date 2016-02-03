@@ -4,6 +4,6 @@ namespace IotCoreAppProjectExtensibility
 {
     public interface IContentChange
     {
-        void ApplyToContent(String rootFolder);
+        bool ApplyToContent(String rootFolder);
     }
 }

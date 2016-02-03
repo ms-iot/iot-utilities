@@ -1,7 +1,7 @@
 ﻿using IotCoreAppProjectExtensibility;
 using System.Collections.Generic;
 
-namespace Python
+namespace Ino
 {
     public class InoProjectProvider : IProjectProvider
     {

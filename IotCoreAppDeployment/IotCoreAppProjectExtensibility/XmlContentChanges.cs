@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Xml;
 
 namespace IotCoreAppProjectExtensibility
@@ -10,9 +11,14 @@ namespace IotCoreAppProjectExtensibility
         public String Value { set; get; }
         public bool IsAttribute { set; get; }
 
-        public void ApplyToContent(String rootFolder)
+        public bool ApplyToContent(String rootFolder)
         {
             String fullPath = rootFolder + @"\" + AppxRelativePath;
+            if (!File.Exists(fullPath))
+            {
+                return false;
+            }
+
             var document = new XmlDocument();
             document.Load(fullPath);
 
@@ -28,6 +34,7 @@ namespace IotCoreAppProjectExtensibility
             node.SetValue(Value);
 
             document.Save(fullPath);
+            return true;
         }
     }
 }
