@@ -6,12 +6,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Fclp.Internals;
 using System.ComponentModel;
-using System.Reflection;
 
 namespace IotCoreAppDeployment
 {
@@ -70,6 +68,11 @@ namespace IotCoreAppDeployment
                             }
                         })
                         .SetDefault(defaultSdkVersion);
+
+                    commandLineParser.Setup<string>('t')
+                        .WithDescription("Specify the temp working directory ... if nothing is specified a folder in the %temp% will be used")
+                        .Callback(value => { outputFolder = value; })
+                        .SetDefault(null);
 
                     commandLineParser.Setup<DependencyConfiguration>('f')
                         .WithDescription("Specify the configuration [Debug|Release] ... Debug is the default")
@@ -139,7 +142,7 @@ namespace IotCoreAppDeployment
 
         #endregion
 
-        private String outputFolder = "";
+        private String outputFolder = null;
         private String source = "";
         private String targetName = "";
         private String makeAppxPath = null;
@@ -461,6 +464,8 @@ namespace IotCoreAppDeployment
 
         private async Task<bool> DeployAppx(String outputAppx, String outputCer, List<FileStreamInfo> dependencies, String dependencyFolder, String identityName)
         {
+            Console.Write(String.Format("... deploying to target {0}", targetName));
+
             // Create list of all APPX and CER files for deployment
             var files = new List<FileInfo>();
             files.Add(new FileInfo(outputAppx));
@@ -565,6 +570,34 @@ namespace IotCoreAppDeployment
         {
             #region Find Template and Project from available providers
 
+            // Is targetName set correctly?
+            if (targetName == null || targetName.Length == 0 || targetName.Equals("?"))
+            {
+                targetName = 
+                    Microsoft.VisualBasic.Interaction.InputBox("Enter target name or ip address: ", "Get Target");
+                if (targetName == null || targetName.Length == 0)
+                {
+                    Console.Write("... device must be specified.");
+                    return false;
+                }
+            }
+
+            try
+            {
+                // Host Name resolution to IP
+                IPHostEntry host = Dns.GetHostEntry(targetName);
+                IPAddress[] ipaddr = host.AddressList;
+                if (ipaddr.Length != 0)
+                {
+                    targetName = ipaddr[0].ToString();
+                }
+            }
+            catch (Exception e)
+            {
+                Console.Write(String.Format("... device specified ({0}) cannot be resolved: {1}", targetName, e.Message));
+                return false;
+            }
+
             // Ensure that the required Tools (MakeAppx and SignTool) can be found
             var universalSdkRoot = Registry.GetValue(universalSdkRootKey, universalSdkRootValue, null) as String;
             if (universalSdkRoot == null && (makeAppxPath == null || signToolPath == null))
@@ -639,7 +672,10 @@ namespace IotCoreAppDeployment
 
             #endregion
 
-            outputFolder = Path.GetTempPath() + Path.GetRandomFileName();
+            if (outputFolder == null)
+            {
+                outputFolder = Path.GetTempPath() + Path.GetRandomFileName();
+            }
 
             String artifactsFolder = outputFolder + @"\output";
             String filename = project.IdentityName + "_" + targetType + "_" + configuration;
@@ -648,7 +684,10 @@ namespace IotCoreAppDeployment
             String outputAppx = artifactsFolder + @"\" + appxFilename;
             String outputCer = artifactsFolder + @"\" + cerFilename;
 
-            Directory.CreateDirectory(artifactsFolder);
+            if (!Directory.Exists(artifactsFolder))
+            {
+                Directory.CreateDirectory(artifactsFolder);
+            }
 
             var success = await CreateAppx(template, project, makeAppxCmd, outputAppx);
             if (!success)

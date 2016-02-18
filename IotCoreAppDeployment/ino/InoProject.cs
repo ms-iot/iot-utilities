@@ -421,7 +421,11 @@ namespace Ino
             foreach (var sourceFile in sourceFiles)
             {
                 var sourceFileInfo = new FileInfo(sourceFile);
-                String objFilePath = fullBuildOutputDir + "\\" + sourceFileInfo.Name.Replace(sourceFileInfo.Extension, ".obj");
+                var extension = sourceFileInfo.Extension;
+                var filename = sourceFileInfo.Name;
+
+                var objFilename = filename.Substring(0, filename.Length - extension.Length) + ".obj";
+                String objFilePath = fullBuildOutputDir + "\\" + objFilename;
                 if (!File.Exists(objFilePath))
                 {
                     Debug.WriteLine(String.Format("Failed to compile {0} to {1}.", sourceFile, objFilePath));
@@ -484,7 +488,10 @@ namespace Ino
             // Create build folder (i.e. ARM\Debug or X86\Debug)
             String buildOutputDir = ProcessorArchitecture + "\\" + DependencyConfiguration + "\\";
             String fullBuildOutputDir = outputFolder + "\\" + buildOutputDir;
-            Directory.CreateDirectory(fullBuildOutputDir);
+            if (!Directory.Exists(fullBuildOutputDir))
+            {
+                Directory.CreateDirectory(fullBuildOutputDir);
+            }
             bool success = false;
 
             // Get PCH.H from resources
