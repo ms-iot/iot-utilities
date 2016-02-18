@@ -1,0 +1,134 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{0B9CA8DB-CD25-4B36-B561-03D6D4D93A01}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Python</RootNamespace>
+    <AssemblyName>Python</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="PythonProject.cs" />
+    <Compile Include="PythonProjectProvider.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\IotCoreAppProjectExtensibility\IotCoreAppProjectExtensibility.csproj">
+      <Project>{a00a9068-40cd-45c7-98e1-2b7c014f067c}</Project>
+      <Name>IotCoreAppProjectExtensibility</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\ARM\PythonHome\DLLs\pyexpat.pyd" />
+    <EmbeddedResource Include="Resources\ARM\PythonHome\DLLs\select.pyd" />
+    <EmbeddedResource Include="Resources\ARM\PythonHome\DLLs\unicodedata.pyd" />
+    <EmbeddedResource Include="Resources\ARM\PythonHome\DLLs\_bz2.pyd" />
+    <EmbeddedResource Include="Resources\ARM\PythonHome\DLLs\_ctypes.pyd" />
+    <EmbeddedResource Include="Resources\ARM\PythonHome\DLLs\_elementtree.pyd" />
+    <EmbeddedResource Include="Resources\ARM\PythonHome\DLLs\_ptvsdhelper.pyd" />
+    <EmbeddedResource Include="Resources\ARM\PythonHome\DLLs\_socket.pyd" />
+    <EmbeddedResource Include="Resources\ARM\PythonHome\DLLs\_ssl.pyd" />
+    <EmbeddedResource Include="Resources\ARM\PythonHome\lib.zip" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\ARM\ptvsd\attach_server.py" />
+    <EmbeddedResource Include="Resources\ARM\ptvsd\visualstudio_py_debugger.py" />
+    <EmbeddedResource Include="Resources\ARM\ptvsd\visualstudio_py_repl.py" />
+    <EmbeddedResource Include="Resources\ARM\ptvsd\visualstudio_py_util.py" />
+    <EmbeddedResource Include="Resources\ARM\ptvsd\__init__.py" />
+    <EmbeddedResource Include="Resources\ARM\ptvsd\__main__.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\x86\ptvsd\attach_server.py" />
+    <EmbeddedResource Include="Resources\x86\ptvsd\visualstudio_py_debugger.py" />
+    <EmbeddedResource Include="Resources\x86\ptvsd\visualstudio_py_repl.py" />
+    <EmbeddedResource Include="Resources\x86\ptvsd\visualstudio_py_util.py" />
+    <EmbeddedResource Include="Resources\x86\ptvsd\__init__.py" />
+    <EmbeddedResource Include="Resources\x86\ptvsd\__main__.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\x86\startupinfo.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\x86\pyuwpbackgroundservice.dll" />
+    <EmbeddedResource Include="Resources\x86\visualstudio_py_debugger.py" />
+    <EmbeddedResource Include="Resources\x86\visualstudio_py_launcher.py" />
+    <EmbeddedResource Include="Resources\x86\visualstudio_py_remote_launcher.py" />
+    <EmbeddedResource Include="Resources\x86\visualstudio_py_repl.py" />
+    <EmbeddedResource Include="Resources\x86\visualstudio_py_testlauncher.py" />
+    <EmbeddedResource Include="Resources\x86\visualstudio_py_util.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\ARM\Python35.dll" />
+    <EmbeddedResource Include="Resources\ARM\pyuwpbackgroundservice.dll" />
+    <EmbeddedResource Include="Resources\ARM\visualstudio_py_debugger.py" />
+    <EmbeddedResource Include="Resources\ARM\visualstudio_py_launcher.py" />
+    <EmbeddedResource Include="Resources\ARM\visualstudio_py_remote_launcher.py" />
+    <EmbeddedResource Include="Resources\ARM\visualstudio_py_repl.py" />
+    <EmbeddedResource Include="Resources\ARM\visualstudio_py_testlauncher.py" />
+    <EmbeddedResource Include="Resources\ARM\visualstudio_py_util.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\ARM\resources.pri" />
+    <EmbeddedResource Include="Resources\ARM\startupinfo.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\x86\Python35.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\x86\resources.pri" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\x86\PythonHome\DLLs\pyexpat.pyd" />
+    <EmbeddedResource Include="Resources\x86\PythonHome\DLLs\select.pyd" />
+    <EmbeddedResource Include="Resources\x86\PythonHome\DLLs\unicodedata.pyd" />
+    <EmbeddedResource Include="Resources\x86\PythonHome\DLLs\_bz2.pyd" />
+    <EmbeddedResource Include="Resources\x86\PythonHome\DLLs\_ctypes.pyd" />
+    <EmbeddedResource Include="Resources\x86\PythonHome\DLLs\_elementtree.pyd" />
+    <EmbeddedResource Include="Resources\x86\PythonHome\DLLs\_ptvsdhelper.pyd" />
+    <EmbeddedResource Include="Resources\x86\PythonHome\DLLs\_socket.pyd" />
+    <EmbeddedResource Include="Resources\x86\PythonHome\DLLs\_ssl.pyd" />
+    <EmbeddedResource Include="Resources\x86\PythonHome\lib.zip" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

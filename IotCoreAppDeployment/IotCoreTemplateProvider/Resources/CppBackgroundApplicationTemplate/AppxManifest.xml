@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Package IgnorableNamespaces="uap mp iot build" xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" xmlns:iot="http://schemas.microsoft.com/appx/manifest/iot/windows10" xmlns:build="http://schemas.microsoft.com/developer/appx/2015/build">
+  
+  <Identity Name="BackgroundApplication1-uwp" Publisher="CN=TEST" Version="1.0.0.0" ProcessorArchitecture="x86"/>
+  <mp:PhoneIdentity PhoneProductId="d4a5d0ee-e647-4211-9539-4288770ed935" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
+  <Properties>
+    <DisplayName>BackgroundApplication1</DisplayName>
+    <PublisherDisplayName>TEST</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+  </Properties>
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.10240.0" MaxVersionTested="10.0.10586.0"/>
+    <PackageDependency Name="Microsoft.VCLibs.140.00.Debug" MinVersion="14.0.22929.0" Publisher="CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US"/>
+  </Dependencies>
+  <Resources>
+    <Resource Language="EN-US"/>
+    <Resource uap:Scale="200"/>
+    
+  </Resources>
+  <Applications>
+    <Application Id="App">
+      <uap:VisualElements DisplayName="BackgroundApplication1" Square150x150Logo="Assets\Square150x150Logo.png" Square44x44Logo="Assets\Square44x44Logo.png" Description="BackgroundApplication1" BackgroundColor="transparent" AppListEntry="none">
+        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png"/>
+        <uap:SplashScreen Image="Assets\SplashScreen.png"/>
+      </uap:VisualElements>
+      <Extensions>
+        <Extension Category="windows.backgroundTasks" EntryPoint="BackgroundApplication1.StartupTask">
+          <BackgroundTasks>
+            <iot:Task Type="startup"/>
+          </BackgroundTasks>
+        </Extension>
+      </Extensions>
+    </Application>
+  </Applications>
+  <Capabilities>
+    <Capability Name="internetClient"/>
+  </Capabilities>
+  <Extensions>
+    <Extension Category="windows.activatableClass.inProcessServer">
+      <InProcessServer>
+        <Path>BackgroundApplication1.dll</Path>
+        <ActivatableClass ActivatableClassId="BackgroundApplication1.StartupTask" ThreadingModel="both"/>
+      </InProcessServer>
+    </Extension>
+  </Extensions>
+  <build:Metadata>
+    <build:Item Name="cl.exe" Version="19.00.23506.0 built by: VCTOOLSREL"/>
+    <build:Item Name="VisualStudio" Version="14.0"/>
+    <build:Item Name="VisualStudioEdition" Value="Microsoft Visual Studio Professional 2015"/>
+    <build:Item Name="OperatingSystem" Version="10.0.10586.0 (th2_release.151029-1700)"/>
+    <build:Item Name="Microsoft.Build.AppxPackage.dll" Version="14.0.24811.0"/>
+    <build:Item Name="ProjectGUID" Value="{6b5f743d-8ac0-41ae-bd8c-545bce829496}"/>
+    <build:Item Name="OptimizingToolset" Value="None"/>
+    <build:Item Name="TargetRuntime" Value="Native"/>
+    <build:Item Name="Microsoft.Windows.UI.Xaml.Build.Tasks.dll" Version="14.0.24720.0"/>
+    <build:Item Name="MakePri.exe" Version="10.0.10586.15 (th2_release.151119-1817)"/>
+  </build:Metadata>
+</Package>
