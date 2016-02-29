@@ -584,18 +584,27 @@ namespace IotCoreAppDeployment
 
             try
             {
-                // Host Name resolution to IP
-                IPHostEntry host = Dns.GetHostEntry(targetName);
-                IPAddress[] ipaddr = host.AddressList;
-                if (ipaddr.Length != 0)
-                {
-                    targetName = ipaddr[0].ToString();
-                }
+                // Assume an IP address was provided
+                IPAddress.Parse(targetName);
             }
-            catch (Exception e)
+            catch
             {
-                Console.Write(String.Format("... device specified ({0}) cannot be resolved: {1}", targetName, e.Message));
-                return false;
+                // If an IP address was not provided, assume device name was provided
+                try
+                {
+                    // Host Name resolution to IP
+                    IPHostEntry host = Dns.GetHostEntry(targetName);
+                    IPAddress[] ipaddr = host.AddressList;
+                    if (ipaddr.Length != 0)
+                    {
+                        targetName = ipaddr[0].ToString();
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.Write(String.Format("... device specified ({0}) cannot be resolved: {1}", targetName, e.Message));
+                    return false;
+                }
             }
 
             // Ensure that the required Tools (MakeAppx and SignTool) can be found
