@@ -6,35 +6,14 @@
 -->
 <SignConfigXML>
   <!-- AnyCPU Release sign job -->
-  <job platform="AnyCPU" configuration="Release" dest="__RELBINPATH__\signed" jobname="IoT Utilities IotCoreAppDeployment.exe" approvers="artemz;alecont">
-    <file src="__RELBINPATH__\IotCoreAppDeployment.exe" signType="Both" dest="__RELBINPATH__\signed\IotCoreAppDeployment.exe" />
-  </job>
-  <!-- AnyCPU Release sign job -->
-  <job platform="AnyCPU" configuration="Release" dest="__RELBINPATH__\signed" jobname="IoT Utilities IotCoreAppDeploymentWorker.dll" approvers="artemz;alecont">
-    <file src="__RELBINPATH__\IotCoreAppDeploymentWorker.dll" signType="Both" dest="__RELBINPATH__\signed\IotCoreAppDeploymentWorker.dll" />
-  </job>
-  <!-- AnyCPU Release sign job -->
-  <job platform="AnyCPU" configuration="Release" dest="__RELBINPATH__\signed" jobname="IoT Utilities IotCoreAppProjectExtensibility.dll" approvers="artemz;alecont">
-    <file src="__RELBINPATH__\IotCoreAppProjectExtensibility.dll" signType="Both" dest="__RELBINPATH__\signed\IotCoreAppProjectExtensibility.dll" />
-  </job>
-  <!-- AnyCPU Release sign job -->
-  <job platform="AnyCPU" configuration="Release" dest="__RELBINPATH__\signed" jobname="IoT Utilities IotCoreSdkProvider.dll" approvers="artemz;alecont">
-    <file src="__RELBINPATH__\IotCoreSdkProvider.dll" signType="Both" dest="__RELBINPATH__\signed\IotCoreSdkProvider.dll" />
-  </job>
-  <!-- AnyCPU Release sign job -->
-  <job platform="AnyCPU" configuration="Release" dest="__RELBINPATH__\signed" jobname="IoT Utilities IotCoreTemplateProvider.dll" approvers="artemz;alecont">
-    <file src="__RELBINPATH__\IotCoreTemplateProvider.dll" signType="Both" dest="__RELBINPATH__\signed\IotCoreTemplateProvider.dll" />
-  </job>
-  <!-- AnyCPU Release sign job -->
-  <job platform="AnyCPU" configuration="Release" dest="__RELBINPATH__\signed" jobname="IoT Utilities Python.dll" approvers="artemz;alecont">
-    <file src="__RELBINPATH__\Python.dll" signType="Both" dest="__RELBINPATH__\signed\Python.dll" />
-  </job>
-  <!-- AnyCPU Release sign job -->
-  <job platform="AnyCPU" configuration="Release" dest="__RELBINPATH__\signed" jobname="IoT Utilities NodeJs.dll" approvers="artemz;alecont">
-    <file src="__RELBINPATH__\NodeJs.dll" signType="Both" dest="__RELBINPATH__\signed\NodeJs.dll" />
-  </job>
-  <!-- AnyCPU Release sign job -->
-  <job platform="AnyCPU" configuration="Release" dest="__RELBINPATH__\signed" jobname="IoT Utilities Ino.dll" approvers="artemz;alecont">
-    <file src="__RELBINPATH__\Ino.dll" signType="Both" dest="__RELBINPATH__\signed\Ino.dll" />
+  <job platform="AnyCPU" configuration="Release" dest="__RELBINPATH__\signed" jobname="IoT Utilities IotCoreAppDeployment" approvers="artemz;alecont">
+    <file src="__RELBINPATH__\IotCoreAppDeployment.exe" signType="Authenticode" dest="__RELBINPATH__\signed\IotCoreAppDeployment.exe" />
+    <file src="__RELBINPATH__\IotCoreAppDeploymentWorker.dll" signType="Authenticode" dest="__RELBINPATH__\signed\IotCoreAppDeploymentWorker.dll" />
+    <file src="__RELBINPATH__\IotCoreAppProjectExtensibility.dll" signType="Authenticode" dest="__RELBINPATH__\signed\IotCoreAppProjectExtensibility.dll" />
+    <file src="__RELBINPATH__\IotCoreSdkProvider.dll" signType="Authenticode" dest="__RELBINPATH__\signed\IotCoreSdkProvider.dll" />
+    <file src="__RELBINPATH__\IotCoreTemplateProvider.dll" signType="Authenticode" dest="__RELBINPATH__\signed\IotCoreTemplateProvider.dll" />
+    <file src="__RELBINPATH__\Python.dll" signType="Authenticode" dest="__RELBINPATH__\signed\Python.dll" />
+    <file src="__RELBINPATH__\NodeJs.dll" signType="Authenticode" dest="__RELBINPATH__\signed\NodeJs.dll" />
+    <file src="__RELBINPATH__\Ino.dll" signType="Authenticode" dest="__RELBINPATH__\signed\Ino.dll" />
   </job>
 </SignConfigXML>
