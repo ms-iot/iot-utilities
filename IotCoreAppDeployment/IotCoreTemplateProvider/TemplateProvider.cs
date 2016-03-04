@@ -1,15 +1,21 @@
-﻿using IotCoreAppProjectExtensibility;
+﻿using Microsoft.Iot.IotCoreAppProjectExtensibility;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
-namespace IotCoreTemplateProvider
+namespace Microsoft
 {
-    public class TemplateProvider : ITemplateProvider
+    namespace Iot
     {
-        public List<ITemplate> GetSupportedTemplates()
+        namespace IotCoreTemplateProvider
         {
-            var templates = new List<ITemplate>();
-            templates.Add(new CppBackgroundApplicationTemplate());
-            return templates;
+            public class TemplateProvider : ITemplateProvider
+            {
+                public ReadOnlyCollection<ITemplate> GetSupportedTemplates()
+                {
+                    var templates = new List<ITemplate>() { new CppBackgroundApplicationTemplate() };
+                    return new ReadOnlyCollection<ITemplate>(templates);
+                }
+            }
         }
     }
 }

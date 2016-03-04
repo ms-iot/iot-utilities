@@ -1,9 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.ObjectModel;
 
-namespace IotCoreAppProjectExtensibility
+namespace Microsoft
 {
-    public interface IProjectProvider
+    namespace Iot
     {
-        List<IProject> GetSupportedProjects();
+        namespace IotCoreAppProjectExtensibility
+        {
+            public interface IProjectProvider
+            {
+                ReadOnlyCollection<IProject> GetSupportedProjects();
+            }
+        }
     }
 }

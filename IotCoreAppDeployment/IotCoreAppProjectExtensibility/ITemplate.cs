@@ -1,14 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
-namespace IotCoreAppProjectExtensibility
+namespace Microsoft
 {
-    public interface ITemplate
+    namespace Iot
     {
-        String Name { get; }
-        IBaseProjectTypes GetBaseProjectType();
-        List<FileStreamInfo> GetTemplateContents();
-        bool GetAppxMapContents(List<String> resourceMetadata, List<String> files, String outputFolder);
+        namespace IotCoreAppProjectExtensibility
+        {
+            public interface ITemplate
+            {
+                string Name { get; }
+                IBaseProjectTypes GetBaseProjectType();
+                ReadOnlyCollection<FileStreamInfo> GetTemplateContents();
+                bool GetAppxMapContents(Collection<string> resourceMetadata, Collection<string> files, string outputFolder);
 
+            }
+        }
     }
 }

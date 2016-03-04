@@ -1,26 +1,32 @@
 ﻿using System;
 using System.IO;
 
-namespace IotCoreAppProjectExtensibility
+namespace Microsoft
 {
-    public class FileStreamInfo
+    namespace Iot
     {
-        public String AppxRelativePath { get; set; }
-        public Stream Stream { get; set; }
-
-        public bool Apply(String rootFolder)
+        namespace IotCoreAppProjectExtensibility
         {
-            if (Stream == null)
+            public class FileStreamInfo
             {
-                return false;
-            }
+                public string AppxRelativePath { get; set; }
+                public Stream Stream { get; set; }
 
-            Directory.CreateDirectory(Path.GetDirectoryName(rootFolder + @"\" + AppxRelativePath));
-            using (var fileStream = File.Create(rootFolder + @"\" + AppxRelativePath))
-            {
-                Stream.Seek(0, SeekOrigin.Begin);
-                Stream.CopyTo(fileStream);
-                return true;
+                public bool Apply(string rootFolder)
+                {
+                    if (Stream == null)
+                    {
+                        return false;
+                    }
+
+                    Directory.CreateDirectory(Path.GetDirectoryName(rootFolder + @"\" + AppxRelativePath));
+                    using (var fileStream = File.Create(rootFolder + @"\" + AppxRelativePath))
+                    {
+                        Stream.Seek(0, SeekOrigin.Begin);
+                        Stream.CopyTo(fileStream);
+                        return true;
+                    }
+                }
             }
         }
     }

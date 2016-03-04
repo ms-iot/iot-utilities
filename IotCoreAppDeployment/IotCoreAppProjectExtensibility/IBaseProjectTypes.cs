@@ -1,11 +1,17 @@
-﻿namespace IotCoreAppProjectExtensibility
+﻿namespace Microsoft
 {
-    public enum IBaseProjectTypes
+    namespace Iot
     {
-        CPlusPlusBackgroundApplication,
-        CSharp,
-        JavaScript,
-        VisualBasic,
-        Other,
+        namespace IotCoreAppProjectExtensibility
+        {
+            public enum IBaseProjectTypes
+            {
+                CPlusPlusBackgroundApplication,
+                CSharp,
+                JavaScript,
+                VisualBasic,
+                Other,
+            }
+        }
     }
 }

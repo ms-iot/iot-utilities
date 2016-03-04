@@ -1,17 +1,23 @@
-﻿using IotCoreAppProjectExtensibility;
+﻿using Microsoft.Iot.IotCoreAppProjectExtensibility;
 using System;
 using System.Collections.Generic;
 
-namespace IoTCoreSdkProvider
+namespace Microsoft
 {
-    public class SharedDependencyProvider : IDependencyProvider
+    namespace Iot
     {
-        public Dictionary<String, IDependency> GetSupportedDependencies()
+        namespace IoTCoreSdkProvider
         {
-            var dependencies = new Dictionary<String, IDependency>();
-            var cppuwp = new CPlusPlusUwpDependency();
-            dependencies.Add(cppuwp.Name, cppuwp);
-            return dependencies;
+            public class SharedDependencyProvider : IDependencyProvider
+            {
+                public Dictionary<string, IDependency> GetSupportedDependencies()
+                {
+                    var dependencies = new Dictionary<string, IDependency>();
+                    var cppuwp = new CPlusPlusUwpDependency();
+                    dependencies.Add(cppuwp.Name, cppuwp);
+                    return dependencies;
+                }
+            }
         }
     }
 }

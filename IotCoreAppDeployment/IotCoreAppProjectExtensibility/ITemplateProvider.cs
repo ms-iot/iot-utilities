@@ -1,9 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.ObjectModel;
 
-namespace IotCoreAppProjectExtensibility
+namespace Microsoft
 {
-    public interface ITemplateProvider
+    namespace Iot
     {
-        List<ITemplate> GetSupportedTemplates();
+        namespace IotCoreAppProjectExtensibility
+        {
+            public interface ITemplateProvider
+            {
+                ReadOnlyCollection<ITemplate> GetSupportedTemplates();
+            }
+        }
     }
 }

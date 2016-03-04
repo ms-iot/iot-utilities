@@ -1,44 +1,50 @@
 ﻿using System.Security.Cryptography;
 
-namespace IotCoreAppDeployment
+namespace Microsoft
 {
-    /// <summary>
-    /// WebB login info for specified DeviceName
-    /// </summary>
-    public class UserInfo
+    namespace Iot
     {
-        public UserInfo()
+        namespace IotCoreAppDeployment
         {
-            this.UserName = string.Empty;
-            this.Password = string.Empty;
-            this.SavePassword = false;
-        }
-
-        public string UserName { get; set; }
-
-        /// <summary>
-        /// Return plain text password
-        /// </summary>
-        public string Password
-        {
-            get
+            /// <summary>
+            /// WebB login info for specified DeviceName
+            /// </summary>
+            public class UserInfo
             {
-                return System.Text.Encoding.UTF8.GetString(
-                                    ProtectedData.Unprotect(SecurePassword, null, DataProtectionScope.CurrentUser));
-            }
+                public UserInfo()
+                {
+                    this.UserName = string.Empty;
+                    this.Password = string.Empty;
+                    this.SavePassword = false;
+                }
+
+                public string UserName { get; set; }
+
+                /// <summary>
+                /// Return plain text password
+                /// </summary>
+                public string Password
+                {
+                    get
+                    {
+                        return System.Text.Encoding.UTF8.GetString(
+                                            ProtectedData.Unprotect(SecurePassword, null, DataProtectionScope.CurrentUser));
+                    }
 
 
-            set
-            {
-                SecurePassword = ProtectedData.Protect(System.Text.Encoding.UTF8.GetBytes(value), null, DataProtectionScope.CurrentUser);
+                    set
+                    {
+                        SecurePassword = ProtectedData.Protect(System.Text.Encoding.UTF8.GetBytes(value), null, DataProtectionScope.CurrentUser);
+                    }
+                }
+
+                /// <summary>
+                /// Returns encrypted password
+                /// </summary>
+                public byte[] SecurePassword { get; set; }
+
+                public bool? SavePassword { get; set; }
             }
         }
-
-        /// <summary>
-        /// Returns encrypted password
-        /// </summary>
-        public byte[] SecurePassword { get; set; }
-
-        public bool? SavePassword { get; set; }
     }
 }

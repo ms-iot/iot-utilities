@@ -1,20 +1,26 @@
 ﻿using System.Runtime.Serialization;
 
-namespace IotCoreAppDeployment
+namespace Microsoft
 {
-    [DataContract]
-    public class DeploymentState
+    namespace Iot
     {
-        [DataMember(Name = "Code")]
-        public int HResult { get; set; }
+        namespace IotCoreAppDeployment
+        {
+            [DataContract]
+            public class DeploymentState
+            {
+                [DataMember(Name = "Code")]
+                public int HResult { get; set; }
 
-        [DataMember(Name = "CodeText")]
-        public string CodeText { get; set; }
+                [DataMember(Name = "CodeText")]
+                public string CodeText { get; set; }
 
-        [DataMember(Name = "Reason")]
-        public string Reason { get; set; }
+                [DataMember(Name = "Reason")]
+                public string Reason { get; set; }
 
-        [DataMember(Name = "Success")]
-        public bool IsSuccess { get; set; }
+                [DataMember(Name = "Success")]
+                public bool IsSuccess { get; set; }
+            }
+        }
     }
 }
