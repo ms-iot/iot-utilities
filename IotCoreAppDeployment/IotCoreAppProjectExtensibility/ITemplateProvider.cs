@@ -1,15 +1,9 @@
 ﻿using System.Collections.ObjectModel;
 
-namespace Microsoft
+namespace Microsoft.Iot.IotCoreAppProjectExtensibility
 {
-    namespace Iot
+    public interface ITemplateProvider
     {
-        namespace IotCoreAppProjectExtensibility
-        {
-            public interface ITemplateProvider
-            {
-                ReadOnlyCollection<ITemplate> GetSupportedTemplates();
-            }
-        }
+        ReadOnlyCollection<ITemplate> GetSupportedTemplates();
     }
 }

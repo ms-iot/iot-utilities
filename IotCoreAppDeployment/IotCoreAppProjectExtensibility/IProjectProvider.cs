@@ -1,15 +1,9 @@
 ﻿using System.Collections.ObjectModel;
 
-namespace Microsoft
+namespace Microsoft.Iot.IotCoreAppProjectExtensibility
 {
-    namespace Iot
+    public interface IProjectProvider
     {
-        namespace IotCoreAppProjectExtensibility
-        {
-            public interface IProjectProvider
-            {
-                ReadOnlyCollection<IProject> GetSupportedProjects();
-            }
-        }
+        ReadOnlyCollection<IProject> GetSupportedProjects();
     }
 }

@@ -2,20 +2,14 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
-namespace Microsoft
+namespace Microsoft.Iot.NodeJs
 {
-    namespace Iot
+    public class NodeJsProjectProvider : IProjectProvider
     {
-        namespace NodeJs
+        public ReadOnlyCollection<IProject> GetSupportedProjects()
         {
-            public class NodeJsProjectProvider : IProjectProvider
-            {
-                public ReadOnlyCollection<IProject> GetSupportedProjects()
-                {
-                    var supportedProjects = new List<IProject>() {new NodeJsProject()};
-                    return new ReadOnlyCollection<IProject>(supportedProjects);
-                }
-            }
+            var supportedProjects = new List<IProject>() { new NodeJsProject() };
+            return new ReadOnlyCollection<IProject>(supportedProjects);
         }
     }
 }

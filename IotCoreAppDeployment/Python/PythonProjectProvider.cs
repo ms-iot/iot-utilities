@@ -2,20 +2,14 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
-namespace Microsoft
+namespace Microsoft.Iot.Python
 {
-    namespace Iot
+    public class PythonProjectProvider : IProjectProvider
     {
-        namespace Python
+        public ReadOnlyCollection<IProject> GetSupportedProjects()
         {
-            public class PythonProjectProvider : IProjectProvider
-            {
-                public ReadOnlyCollection<IProject> GetSupportedProjects()
-                {
-                    var supportedProjects = new List<IProject>() {new PythonProject()};
-                    return new ReadOnlyCollection<IProject>(supportedProjects);
-                }
-            }
+            var supportedProjects = new List<IProject>() { new PythonProject() };
+            return new ReadOnlyCollection<IProject>(supportedProjects);
         }
     }
 }

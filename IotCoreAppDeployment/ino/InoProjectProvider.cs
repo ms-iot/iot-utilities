@@ -2,20 +2,14 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
-namespace Microsoft
+namespace Microsoft.Iot.Ino
 {
-    namespace Iot
+    public class InoProjectProvider : IProjectProvider
     {
-        namespace Ino
+        public ReadOnlyCollection<IProject> GetSupportedProjects()
         {
-            public class InoProjectProvider : IProjectProvider
-            {
-                public ReadOnlyCollection<IProject> GetSupportedProjects()
-                {
-                    var supportedProjects = new List<IProject>() {new InoProject()};
-                    return new ReadOnlyCollection<IProject>(supportedProjects);
-                }
-            }
+            var supportedProjects = new List<IProject>() { new InoProject() };
+            return new ReadOnlyCollection<IProject>(supportedProjects);
         }
     }
 }

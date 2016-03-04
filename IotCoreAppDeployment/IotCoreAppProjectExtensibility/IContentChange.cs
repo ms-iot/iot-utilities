@@ -1,15 +1,7 @@
-﻿using System;
-
-namespace Microsoft
+﻿namespace Microsoft.Iot.IotCoreAppProjectExtensibility
 {
-    namespace Iot
+    public interface IContentChange
     {
-        namespace IotCoreAppProjectExtensibility
-        {
-            public interface IContentChange
-            {
-                bool ApplyToContent(string rootFolder);
-            }
-        }
+        bool ApplyToContent(string rootFolder);
     }
 }

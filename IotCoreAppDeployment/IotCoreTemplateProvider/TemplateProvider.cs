@@ -2,20 +2,14 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
-namespace Microsoft
+namespace Microsoft.Iot.IotCoreTemplateProvider
 {
-    namespace Iot
+    public class TemplateProvider : ITemplateProvider
     {
-        namespace IotCoreTemplateProvider
+        public ReadOnlyCollection<ITemplate> GetSupportedTemplates()
         {
-            public class TemplateProvider : ITemplateProvider
-            {
-                public ReadOnlyCollection<ITemplate> GetSupportedTemplates()
-                {
-                    var templates = new List<ITemplate>() { new CppBackgroundApplicationTemplate() };
-                    return new ReadOnlyCollection<ITemplate>(templates);
-                }
-            }
+            var templates = new List<ITemplate>() { new CppBackgroundApplicationTemplate() };
+            return new ReadOnlyCollection<ITemplate>(templates);
         }
     }
 }

@@ -1,17 +1,10 @@
-﻿using System;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 
-namespace Microsoft
+namespace Microsoft.Iot.IotCoreAppProjectExtensibility
 {
-    namespace Iot
+    public interface IDependency
     {
-        namespace IotCoreAppProjectExtensibility
-        {
-            public interface IDependency
-            {
-                string Name { get; }
-                ReadOnlyCollection<FileStreamInfo> GetDependencies(TargetPlatform platform, DependencyConfiguration configuration, SdkVersion sdkVersion);
-            }
-        }
+        string Name { get; }
+        ReadOnlyCollection<FileStreamInfo> GetDependencies(TargetPlatform platform, DependencyConfiguration configuration, SdkVersion sdkVersion);
     }
 }
