@@ -8,12 +8,12 @@
   <!-- AnyCPU Release sign job -->
   <job platform="AnyCPU" configuration="Release" dest="__RELBINPATH__\signed" jobname="IoT Utilities IotCoreAppDeployment" approvers="artemz;alecont">
     <file src="__RELBINPATH__\IotCoreAppDeployment.exe" signType="Authenticode" dest="__RELBINPATH__\signed\IotCoreAppDeployment.exe" />
-    <file src="__RELBINPATH__\IotCoreAppDeploymentWorker.dll" signType="Authenticode" dest="__RELBINPATH__\signed\IotCoreAppDeploymentWorker.dll" />
-    <file src="__RELBINPATH__\IotCoreAppProjectExtensibility.dll" signType="Authenticode" dest="__RELBINPATH__\signed\IotCoreAppProjectExtensibility.dll" />
-    <file src="__RELBINPATH__\IotCoreSdkProvider.dll" signType="Authenticode" dest="__RELBINPATH__\signed\IotCoreSdkProvider.dll" />
-    <file src="__RELBINPATH__\IotCoreTemplateProvider.dll" signType="Authenticode" dest="__RELBINPATH__\signed\IotCoreTemplateProvider.dll" />
-    <file src="__RELBINPATH__\Python.dll" signType="Authenticode" dest="__RELBINPATH__\signed\Python.dll" />
-    <file src="__RELBINPATH__\NodeJs.dll" signType="Authenticode" dest="__RELBINPATH__\signed\NodeJs.dll" />
-    <file src="__RELBINPATH__\Ino.dll" signType="Authenticode" dest="__RELBINPATH__\signed\Ino.dll" />
+    <file src="__RELBINPATH__\Microsoft.Iot.IotCoreAppDeploymentWorker.dll" signType="Authenticode" dest="__RELBINPATH__\signed\Microsoft.Iot.IotCoreAppDeploymentWorker.dll" />
+    <file src="__RELBINPATH__\Microsoft.Iot.IotCoreAppProjectExtensibility.dll" signType="Authenticode" dest="__RELBINPATH__\signed\Microsoft.Iot.IotCoreAppProjectExtensibility.dll" />
+    <file src="__RELBINPATH__\Microsoft.Iot.IotCoreSdkProvider.dll" signType="Authenticode" dest="__RELBINPATH__\signed\Microsoft.Iot.IotCoreSdkProvider.dll" />
+    <file src="__RELBINPATH__\Microsoft.Iot.IotCoreTemplateProvider.dll" signType="Authenticode" dest="__RELBINPATH__\signed\Microsoft.Iot.IotCoreTemplateProvider.dll" />
+    <file src="__RELBINPATH__\Microsoft.Iot.Python.dll" signType="Authenticode" dest="__RELBINPATH__\signed\Microsoft.Iot.Python.dll" />
+    <file src="__RELBINPATH__\Microsoft.Iot.NodeJs.dll" signType="Authenticode" dest="__RELBINPATH__\signed\Microsoft.Iot.NodeJs.dll" />
+    <file src="__RELBINPATH__\Microsoft.Iot.Ino.dll" signType="Authenticode" dest="__RELBINPATH__\signed\Microsoft.Iot.Ino.dll" />
   </job>
 </SignConfigXML>
