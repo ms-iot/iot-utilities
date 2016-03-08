@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace IotCoreAppDeployment
+namespace Microsoft.Iot.IotCoreAppDeployment
 {
     class WebbHelper
     {
@@ -61,9 +61,9 @@ namespace IotCoreAppDeployment
             _tokenSource = null;
         }
 
-        public async Task<HttpStatusCode> UninstallAppAsync(String packageFullName, String target, UserInfo credentials)
+        public async Task<HttpStatusCode> UninstallAppAsync(string packageFullName, string target, UserInfo credentials)
         {
-            var url = String.Empty;
+            var url = string.Empty;
             var result = HttpStatusCode.BadRequest;
 
             IPAddress ipAddress = IPAddress.Parse(target);
@@ -91,7 +91,7 @@ namespace IotCoreAppDeployment
             return result;
         }
 
-        public async Task<HttpStatusCode> DeployAppAsync(IEnumerable<FileInfo> files, String target, UserInfo credentials)
+        public async Task<HttpStatusCode> DeployAppAsync(IEnumerable<FileInfo> files, string target, UserInfo credentials)
         {
             IPAddress ipAddress = IPAddress.Parse(target);
             RestHelper restHelper = new RestHelper(ipAddress, credentials);
@@ -132,7 +132,7 @@ namespace IotCoreAppDeployment
             return result;
         }
 
-        public async Task<bool> PollInstallStateAsync(String target, UserInfo credentials)
+        public async Task<bool> PollInstallStateAsync(string target, UserInfo credentials)
         {
             IPAddress ipAddress = IPAddress.Parse(target);
             RestHelper restHelper = new RestHelper(ipAddress, credentials);

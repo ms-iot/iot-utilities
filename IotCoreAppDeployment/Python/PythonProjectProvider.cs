@@ -1,15 +1,15 @@
-﻿using IotCoreAppProjectExtensibility;
+﻿using Microsoft.Iot.IotCoreAppProjectExtensibility;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
-namespace Python
+namespace Microsoft.Iot.Python
 {
     public class PythonProjectProvider : IProjectProvider
     {
-        public List<IProject> GetSupportedProjects()
+        public ReadOnlyCollection<IProject> GetSupportedProjects()
         {
-            var supportedProjects = new List<IProject>();
-            supportedProjects.Add(new PythonProject());
-            return supportedProjects;
+            var supportedProjects = new List<IProject>() { new PythonProject() };
+            return new ReadOnlyCollection<IProject>(supportedProjects);
         }
     }
 }

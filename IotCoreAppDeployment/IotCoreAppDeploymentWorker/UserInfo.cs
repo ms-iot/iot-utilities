@@ -1,6 +1,6 @@
 ﻿using System.Security.Cryptography;
 
-namespace IotCoreAppDeployment
+namespace Microsoft.Iot.IotCoreAppDeployment
 {
     /// <summary>
     /// WebB login info for specified DeviceName

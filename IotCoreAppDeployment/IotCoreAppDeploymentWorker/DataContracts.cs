@@ -1,6 +1,6 @@
 ﻿using System.Runtime.Serialization;
 
-namespace IotCoreAppDeployment
+namespace Microsoft.Iot.IotCoreAppDeployment
 {
     [DataContract]
     public class DeploymentState

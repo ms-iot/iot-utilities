@@ -1,29 +1,32 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Xml;
 
-namespace IotCoreAppProjectExtensibility
+namespace Microsoft.Iot.IotCoreAppProjectExtensibility
 {
     public class AppxManifestCapabilityAddition : IContentChange
     {
-        public String Capability { set; get; }
-        public String CapabilityNamespace { set; get; }
-        public String CapabilityName { set; get; }
-        public String DeviceId { set; get; }
-        public String FunctionType { set; get; }
+        public string Capability { set; get; }
+        public string CapabilityNamespace { set; get; }
+        public string CapabilityName { set; get; }
+        public string DeviceId { set; get; }
+        public string FunctionType { set; get; }
 
-        public bool ApplyToContent(String rootFolder)
+        public bool ApplyToContent(string rootFolder)
         {
-            String fullPath = rootFolder + @"\AppxManifest.xml";
+            string fullPath = rootFolder + @"\AppxManifest.xml";
             if (!File.Exists(fullPath))
             {
                 return false;
             }
 
             var document = new XmlDocument();
-            document.Load(fullPath);
+            document.XmlResolver = null;
+            using (var reader = new XmlTextReader(fullPath))
+            {
+                reader.DtdProcessing = DtdProcessing.Ignore;
+                document.Load(reader);
+            }
 
-            var navigator = document.CreateNavigator();
             var xmlnsManager = new System.Xml.XmlNamespaceManager(document.NameTable);
             xmlnsManager.AddNamespace("std", "http://schemas.microsoft.com/appx/manifest/foundation/windows10");
             xmlnsManager.AddNamespace("mp", "http://schemas.microsoft.com/appx/2014/phone/manifest");
@@ -56,7 +59,6 @@ namespace IotCoreAppProjectExtensibility
             }
 
             var capabilitiesNode = document.SelectSingleNode(@"/std:Package/std:Capabilities", xmlnsManager);
-            var foo = xmlnsManager.LookupNamespace(CapabilityNamespace);
             var newCapability = document.CreateElement(capability, (CapabilityNamespace == null) ? document.DocumentElement.NamespaceURI : xmlnsManager.LookupNamespace(CapabilityNamespace));
 
             var capabilityNameAttribute = document.CreateAttribute("Name");

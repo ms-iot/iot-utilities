@@ -1,14 +1,13 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 
-namespace IotCoreAppProjectExtensibility
+namespace Microsoft.Iot.IotCoreAppProjectExtensibility
 {
     public class FileStreamInfo
     {
-        public String AppxRelativePath { get; set; }
+        public string AppxRelativePath { get; set; }
         public Stream Stream { get; set; }
 
-        public bool Apply(String rootFolder)
+        public bool Apply(string rootFolder)
         {
             if (Stream == null)
             {

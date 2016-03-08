@@ -1,22 +1,24 @@
 ﻿using System;
 using System.IO;
-using IotCoreAppProjectExtensibility;
+using Microsoft.Iot.IotCoreAppProjectExtensibility;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Collections.ObjectModel;
+using System.Globalization;
 
-namespace NodeJs
+namespace Microsoft.Iot.NodeJs
 {
     public class NodeJsProject : IProject
     {
-        public String Name { get { return "Node.js Project"; } }
-        public String IdentityName { get { return "nodejs-uwp"; } }
+        public string Name => "Node.js Project";
+        public string IdentityName => "nodejs-uwp";
 
-        public bool IsSourceSupported(String source)
+        public bool IsSourceSupported(string source)
         {
             if (source != null)
             {
-                return source.EndsWith(".js", StringComparison.InvariantCultureIgnoreCase);
+                return source.EndsWith(".js", StringComparison.OrdinalIgnoreCase);
             }
             return false;
         }
@@ -29,13 +31,13 @@ namespace NodeJs
         public TargetPlatform ProcessorArchitecture { set; get; }
         public SdkVersion SdkVersion { set; get; }
         public DependencyConfiguration DependencyConfiguration { set; get; }
-        public String SourceInput { set; get; }
+        public string SourceInput { set; get; }
 
-        private String IdentityPublisher { get { return "CN=" + PropertiesPublisherDisplayName; } }
-        private String PropertiesPublisherDisplayName { get { return "MSFT"; } }
+        private static string IdentityPublisher => "CN=" + PropertiesPublisherDisplayName;
+        private static string PropertiesPublisherDisplayName => "MSFT";
 
-        private String _PhoneIdentityGuid = null;
-        private String PhoneIdentityGuid
+        private static string _PhoneIdentityGuid = null;
+        private static string PhoneIdentityGuid
         {
             get
             {
@@ -46,53 +48,56 @@ namespace NodeJs
                 return _PhoneIdentityGuid;
             }
         }
-        private String PropertiesDisplayName { get { return "NodejsWebServer1"; } }
 
-        private String DisplayName { get { return "nodeuwp"; } }
-        private String Description { get { return "nodeuwp"; } }
-        private String ExtensionEntryPoint { get { return "nodeuwp.StartupTask"; } }
-        private String InProcessServerPath { get { return "nodeuwp.dll"; } }
-        private String InProcessServerActivatableClassId { get { return "nodeuwp.StartupTask"; } }
+        private static string PropertiesDisplayName => "NodejsWebServer1";
 
-        public List<IContentChange> GetAppxContentChanges()
+        private static string DisplayName => "nodeuwp";
+        private static string Description => "nodeuwp";
+        private static string ExtensionEntryPoint => "nodeuwp.StartupTask";
+        private static string InProcessServerPath => "nodeuwp.dll";
+        private static string InProcessServerActivatableClassId => "nodeuwp.StartupTask";
+
+        public ReadOnlyCollection<IContentChange> GetAppxContentChanges()
         {
-            String sdkVersionString = null;
+            string sdkVersionString = null;
             switch (SdkVersion)
             {
                 case SdkVersion.SDK_10_0_10586_0: sdkVersionString = "10.0.10586.0"; break;
                 default:
                     sdkVersionString = "10.0.10240.0"; break; // TODO: throw exception?
             }
-            var changes = new List<IContentChange>();
-            changes.Add(new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Identity/@Name", Value = IdentityName });
-            changes.Add(new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Identity/@Publisher", Value = IdentityPublisher });
-            changes.Add(new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Identity/@ProcessorArchitecture", Value = ProcessorArchitecture.ToString().ToLower() });
-            changes.Add(new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/mp:PhoneIdentity/@PhoneProductId", Value = PhoneIdentityGuid });
-            changes.Add(new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Properties/std:DisplayName", IsAttribute = false, Value = PropertiesDisplayName });
-            changes.Add(new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Properties/std:PublisherDisplayName", IsAttribute = false, Value = PropertiesPublisherDisplayName });
-            changes.Add(new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Dependencies/std:TargetDeviceFamily/@MinVersion", Value = sdkVersionString });
-            changes.Add(new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Dependencies/std:TargetDeviceFamily/@MaxVersionTested", Value = sdkVersionString });
-            changes.Add(new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Applications/std:Application/uap:VisualElements/@DisplayName", Value = DisplayName });
-            changes.Add(new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Applications/std:Application/uap:VisualElements/@Description", Value = Description });
-            changes.Add(new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Applications/std:Application/std:Extensions/std:Extension/@EntryPoint", Value = ExtensionEntryPoint });
-            changes.Add(new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Extensions/std:Extension/std:InProcessServer/std:Path", IsAttribute = false, Value = InProcessServerPath });
-            changes.Add(new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Extensions/std:Extension/std:InProcessServer/std:ActivatableClass/@ActivatableClassId", Value = InProcessServerActivatableClassId });
-            return changes;
+            var changes = new List<IContentChange>() {
+                        new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Identity/@Name", Value = IdentityName },
+                        new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Identity/@Publisher", Value = IdentityPublisher },
+                        new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Identity/@ProcessorArchitecture", Value = ProcessorArchitecture.ToString().ToLower(CultureInfo.InvariantCulture) },
+                        new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/mp:PhoneIdentity/@PhoneProductId", Value = PhoneIdentityGuid },
+                        new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Properties/std:DisplayName", IsAttribute = false, Value = PropertiesDisplayName },
+                        new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Properties/std:PublisherDisplayName", IsAttribute = false, Value = PropertiesPublisherDisplayName },
+                        new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Dependencies/std:TargetDeviceFamily/@MinVersion", Value = sdkVersionString },
+                        new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Dependencies/std:TargetDeviceFamily/@MaxVersionTested", Value = sdkVersionString },
+                        new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Applications/std:Application/uap:VisualElements/@DisplayName", Value = DisplayName },
+                        new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Applications/std:Application/uap:VisualElements/@Description", Value = Description },
+                        new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Applications/std:Application/std:Extensions/std:Extension/@EntryPoint", Value = ExtensionEntryPoint },
+                        new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Extensions/std:Extension/std:InProcessServer/std:Path", IsAttribute = false, Value = InProcessServerPath },
+                        new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Extensions/std:Extension/std:InProcessServer/std:ActivatableClass/@ActivatableClassId", Value = InProcessServerActivatableClassId },
+                    };
+            return new ReadOnlyCollection<IContentChange>(changes);
         }
 
-        public List<IContentChange> GetCapabilities()
+        public ReadOnlyCollection<IContentChange> GetCapabilities()
         {
-            var changes = new List<IContentChange>();
+            var changes = new List<IContentChange>()
+                    {
+                        new AppxManifestCapabilityAddition() { CapabilityName = "internetClientServer" },
+                        new AppxManifestCapabilityAddition() { CapabilityName = "privateNetworkClientServer" },
+                        new AppxManifestCapabilityAddition() { CapabilityName = "systemManagement", CapabilityNamespace = "iot" },
+                        new AppxManifestCapabilityAddition() { Capability = "DeviceCapability", CapabilityName = "serialcommunication", DeviceId = "any", FunctionType = "name:serialPort" },
+                    };
 
-            changes.Add(new AppxManifestCapabilityAddition() { CapabilityName = "internetClientServer" });
-            changes.Add(new AppxManifestCapabilityAddition() { CapabilityName = "privateNetworkClientServer" });
-            changes.Add(new AppxManifestCapabilityAddition() { CapabilityName = "systemManagement", CapabilityNamespace = "iot" });
-            changes.Add(new AppxManifestCapabilityAddition() { Capability = "DeviceCapability", CapabilityName = "serialcommunication", DeviceId = "any", FunctionType="name:serialPort" });
-
-            return changes;
+            return new ReadOnlyCollection<IContentChange>(changes);
         }
 
-        private FileStreamInfo FileFromResources(String fileName)
+        private FileStreamInfo FileFromResources(string fileName)
         {
             var platformString = "";
             switch (ProcessorArchitecture)
@@ -103,8 +108,8 @@ namespace NodeJs
                     return null;
             }
 
-            var names = Assembly.GetExecutingAssembly().GetManifestResourceNames();
-            var convertedPath = @"NodeJs.Resources." + platformString + "." + fileName.Replace('\\', '.');
+            string assemblyName = typeof(NodeJsProject).Assembly.GetName().Name;
+            var convertedPath = assemblyName + @".Resources." + platformString + "." + fileName.Replace('\\', '.');
             return new FileStreamInfo()
             {
                 AppxRelativePath = fileName,
@@ -112,22 +117,22 @@ namespace NodeJs
             };
         }
 
-        public List<FileStreamInfo> GetAppxContents()
+        public ReadOnlyCollection<FileStreamInfo> GetAppxContents()
         {
-            var contents = new List<FileStreamInfo>();
-            contents.Add(FileFromResources(@"msvcp140.dll"));
-            contents.Add(FileFromResources(@"node.dll"));
-            contents.Add(FileFromResources(@"nodeuwp.dll"));
-            contents.Add(FileFromResources(@"startupinfo.xml"));
-            contents.Add(FileFromResources(@"vccorlib140.dll"));
-            contents.Add(FileFromResources(@"vcruntime140.dll"));
-            contents.Add(FileFromResources(@"node_modules\uwp.node"));
-
-            contents.Add(new FileStreamInfo() { AppxRelativePath = "server.js", Stream = new FileStream(SourceInput, FileMode.Open, FileAccess.Read) });
-            return contents;
+            var contents = new List<FileStreamInfo>() {
+                        FileFromResources(@"msvcp140.dll"),
+                        FileFromResources(@"node.dll"),
+                        FileFromResources(@"nodeuwp.dll"),
+                        FileFromResources(@"startupinfo.xml"),
+                        FileFromResources(@"vccorlib140.dll"),
+                        FileFromResources(@"vcruntime140.dll"),
+                        FileFromResources(@"node_modules\uwp.node"),
+                        new FileStreamInfo() { AppxRelativePath = "server.js", Stream = new FileStream(SourceInput, FileMode.Open, FileAccess.Read) },
+                    };
+            return new ReadOnlyCollection<FileStreamInfo>(contents);
         }
 
-        public bool GetAppxMapContents(List<String> resourceMetadata, List<String> files, String outputFolder)
+        public bool GetAppxMapContents(Collection<string> resourceMetadata, Collection<string> files, string outputFolder)
         {
             files.Add("\"" + outputFolder + "\\node_modules\\uwp.node\"         \"node_modules\\uwp.node\"");
             files.Add("\"" + outputFolder + "\\msvcp140.dll\"         \"msvcp140.dll\"");
@@ -140,7 +145,7 @@ namespace NodeJs
             return true;
         }
 
-        public List<FileStreamInfo> GetDependencies(List<IDependencyProvider> availableDependencyProviders)
+        public ReadOnlyCollection<FileStreamInfo> GetDependencies(Collection<IDependencyProvider> availableDependencyProviders)
         {
             foreach (var dependencyProvider in availableDependencyProviders)
             {
@@ -150,12 +155,7 @@ namespace NodeJs
                     return supportedDependencies["CPlusPlusUwp"].GetDependencies(ProcessorArchitecture, DependencyConfiguration, SdkVersion);
                 }
             }
-            return new List<FileStreamInfo>();
-        }
-
-        public async Task<bool> BuildAsync(String outputFolder, StreamWriter logging)
-        {
-            return true;
+            return new ReadOnlyCollection<FileStreamInfo>(new List<FileStreamInfo>());
         }
     }
 }

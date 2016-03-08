@@ -1,30 +1,33 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.ObjectModel;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace IotCoreAppProjectExtensibility
+namespace Microsoft.Iot.IotCoreAppProjectExtensibility
 {
     public interface IProject
     {
-        String Name { get; }
-        String IdentityName { get; }
+        string Name { get; }
+        string IdentityName { get; }
 
-        String SourceInput { set; get; }
+        string SourceInput { set; get; }
 
 
         TargetPlatform ProcessorArchitecture { set; get; }
         SdkVersion SdkVersion { set; get; }
         DependencyConfiguration DependencyConfiguration { set; get; }
 
-        bool IsSourceSupported(String source);
+        bool IsSourceSupported(string source);
         IBaseProjectTypes GetBaseProjectType();
 
-        List<IContentChange> GetCapabilities();
-        List<IContentChange> GetAppxContentChanges();
-        bool GetAppxMapContents(List<String> resourceMetadata, List<String> files, String outputFolder);
-        List<FileStreamInfo> GetAppxContents();
-        List<FileStreamInfo> GetDependencies(List<IDependencyProvider> availableDependencyProviders);
-        Task<bool> BuildAsync(String outputFolder, StreamWriter logging);
+        ReadOnlyCollection<IContentChange> GetCapabilities();
+        ReadOnlyCollection<IContentChange> GetAppxContentChanges();
+        bool GetAppxMapContents(Collection<string> resourceMetadata, Collection<string> files, string outputFolder);
+        ReadOnlyCollection<FileStreamInfo> GetAppxContents();
+        ReadOnlyCollection<FileStreamInfo> GetDependencies(Collection<IDependencyProvider> availableDependencyProviders);
+    }
+
+    public interface IProjectWithCustomBuild : IProject
+    {
+        Task<bool> BuildAsync(string outputFolder, StreamWriter logging);
     }
 }

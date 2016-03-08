@@ -1,26 +1,31 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Xml;
 
-namespace IotCoreAppProjectExtensibility
+namespace Microsoft.Iot.IotCoreAppProjectExtensibility
 {
     public class XmlContentChanges : IContentChange
     {
-        public String AppxRelativePath { set; get; }
-        public String XPath { set; get; }
-        public String Value { set; get; }
+        public string AppxRelativePath { set; get; }
+        public string XPath { set; get; }
+        public string Value { set; get; }
         public bool IsAttribute { set; get; }
 
-        public bool ApplyToContent(String rootFolder)
+        public bool ApplyToContent(string rootFolder)
         {
-            String fullPath = rootFolder + @"\" + AppxRelativePath;
+            var fullPath = rootFolder + @"\" + AppxRelativePath;
             if (!File.Exists(fullPath))
             {
                 return false;
             }
 
             var document = new XmlDocument();
-            document.Load(fullPath);
+            document.XmlResolver = null;
+
+            using (var textReader = new XmlTextReader(fullPath))
+            {
+                textReader.DtdProcessing = DtdProcessing.Ignore;
+                document.Load(textReader);
+            }
 
             var navigator = document.CreateNavigator();
             var xmlnsManager = new System.Xml.XmlNamespaceManager(document.NameTable);

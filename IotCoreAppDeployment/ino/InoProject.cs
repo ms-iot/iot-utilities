@@ -1,6 +1,6 @@
 ﻿using System;
 using System.IO;
-using IotCoreAppProjectExtensibility;
+using Microsoft.Iot.IotCoreAppProjectExtensibility;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -9,19 +9,21 @@ using System.Text;
 using System.Threading;
 using Microsoft.Win32;
 using System.IO.Compression;
+using System.Collections.ObjectModel;
+using System.Globalization;
 
-namespace Ino
+namespace Microsoft.Iot.Ino
 {
-    public class InoProject : IProject
+    public class InoProject : IProjectWithCustomBuild
     {
-        public String Name { get { return "Arduino Wiring Project"; } }
-        public String IdentityName { get { return "ino-uwp"; } }
+        public string Name => "Arduino Wiring Project";
+        public string IdentityName => "ino-uwp";
 
-        public bool IsSourceSupported(String source)
+        public bool IsSourceSupported(string source)
         {
             if (source != null)
             {
-                return source.EndsWith(".ino", StringComparison.InvariantCultureIgnoreCase);
+                return source.EndsWith(".ino", StringComparison.OrdinalIgnoreCase);
             }
             return false;
         }
@@ -33,7 +35,7 @@ namespace Ino
 
         public TargetPlatform ProcessorArchitecture { set; get; }
         public SdkVersion SdkVersion { set; get; }
-        private String SdkVersionString
+        private string SdkVersionString
         {
             get
             {
@@ -46,13 +48,13 @@ namespace Ino
             }
         }
         public DependencyConfiguration DependencyConfiguration { set; get; }
-        public String SourceInput { set; get; }
+        public string SourceInput { set; get; }
 
-        private String IdentityPublisher { get { return "CN=" + PropertiesPublisherDisplayName; } }
-        private String PropertiesPublisherDisplayName { get { return "MSFT"; } }
+        private static string IdentityPublisher => "CN=" + PropertiesPublisherDisplayName;
+        private static string PropertiesPublisherDisplayName => "MSFT";
 
-        private String _PhoneIdentityGuid = null;
-        private String PhoneIdentityGuid
+        private string _PhoneIdentityGuid = null;
+        private string PhoneIdentityGuid
         {
             get
             {
@@ -63,44 +65,44 @@ namespace Ino
                 return _PhoneIdentityGuid;
             }
         }
-        private String PropertiesDisplayName { get { return "InoBackgroundApplication1"; } }
+        private static string PropertiesDisplayName => "InoBackgroundApplication1";
 
-        private String DisplayName { get { return "inouwp"; } }
-        private String Description { get { return "inouwp"; } }
-        private String ExtensionEntryPoint { get { return "ArduinoWiringApplication.StartupTask"; } }
-        private String InProcessServerPath { get { return PropertiesDisplayName + ".dll"; } }
-        private String InProcessServerActivatableClassId { get { return "ArduinoWiringApplication.StartupTask"; } }
+        private static string DisplayName => "inouwp";
+        private static string Description => "inouwp";
+        private static string ExtensionEntryPoint => "ArduinoWiringApplication.StartupTask";
+        private static string InProcessServerPath => PropertiesDisplayName + ".dll";
+        private static string InProcessServerActivatableClassId => "ArduinoWiringApplication.StartupTask";
 
-        private String _SdkRoot = null;
-        private String SdkRoot
+        private static string _SdkRoot = null;
+        private static string SdkRoot
         {
             get
             {
                 if (_SdkRoot == null)
                 {
-                    const String universalSdkRootKey = @"HKEY_LOCAL_MACHINE\Software\Microsoft\Windows Kits\Installed Roots";
-                    const String universalSdkRootValue = @"KitsRoot10";
-                    _SdkRoot = Registry.GetValue(universalSdkRootKey, universalSdkRootValue, null) as String;
+                    const string universalSdkRootKey = @"HKEY_LOCAL_MACHINE\Software\Microsoft\Windows Kits\Installed Roots";
+                    const string universalSdkRootValue = @"KitsRoot10";
+                    _SdkRoot = Registry.GetValue(universalSdkRootKey, universalSdkRootValue, null) as string;
                 }
                 return _SdkRoot;
             }
         }
 
-        private String _RegistryVcCompilerPath = null;
-        private String RegistryVcCompilerPath
+        private static string _RegistryVcCompilerPath = null;
+        private static string RegistryVcCompilerPath
         {
             get
             {
                 if (_RegistryVcCompilerPath == null)
                 {
-                    _RegistryVcCompilerPath = Registry.GetValue(@"HKEY_LOCAL_MACHINE\Software\Microsoft\VisualStudio\VC\19.0\x86\x86", "Compiler", "") as String;
+                    _RegistryVcCompilerPath = Registry.GetValue(@"HKEY_LOCAL_MACHINE\Software\Microsoft\VisualStudio\VC\19.0\x86\x86", "Compiler", "") as string;
                 }
                 return _RegistryVcCompilerPath;
             }
         }
 
-        private String _VCToolsWorkingDirectory = null;
-        private String VCToolsWorkingDirectoryFromRegistry
+        private static string _VCToolsWorkingDirectory = null;
+        private static string VCToolsWorkingDirectoryFromRegistry
         {
             get
             {
@@ -112,14 +114,14 @@ namespace Ino
             }
         }
 
-        private String _CompilerPath = null;
-        private String CompilerPathFromRegistry
+        private string _CompilerPath = null;
+        private string CompilerPathFromRegistry
         {
             get
             {
                 if (_CompilerPath == null)
                 {
-                    String compilerFolder = Path.GetDirectoryName(RegistryVcCompilerPath);
+                    string compilerFolder = Path.GetDirectoryName(RegistryVcCompilerPath);
                     _CompilerPath = compilerFolder +
                         ((ProcessorArchitecture == TargetPlatform.ARM) ?
                             @"\x86_arm\cl.exe" :
@@ -129,28 +131,28 @@ namespace Ino
             }
         }
 
-        private String _LinkerPath = null;
-        private String LinkerPathFromRegistry
+        private static string _LinkerPath = null;
+        private static string LinkerPathFromRegistry
         {
             get
             {
                 if (_LinkerPath == null)
                 {
-                    String compilerFolder = Path.GetDirectoryName(RegistryVcCompilerPath);
+                    string compilerFolder = Path.GetDirectoryName(RegistryVcCompilerPath);
                     _LinkerPath = compilerFolder + @"\link.exe";
                 }
                 return _LinkerPath;
             }
         }
 
-        private String _VCLibPath = null;
-        private String VCLibPath
+        private static string _VCLibPath = null;
+        private static string VCLibPath
         {
             get
             {
                 if (_VCLibPath == null)
                 {
-                    String vsCommonToolsPath = Environment.GetEnvironmentVariable("VS140COMNTOOLS");
+                    string vsCommonToolsPath = Environment.GetEnvironmentVariable("VS140COMNTOOLS");
                     if (vsCommonToolsPath != null)
                     {
                         _VCLibPath = new FileInfo(vsCommonToolsPath += "\\..\\..\\VC\\lib").FullName;
@@ -160,14 +162,14 @@ namespace Ino
             }
         }
 
-        private String _VCIncludePath = null;
-        private String VCIncludePath
+        private static string _VCIncludePath = null;
+        private static string VCIncludePath
         {
             get
             {
                 if (_VCIncludePath == null)
                 {
-                    String vsCommonToolsPath = Environment.GetEnvironmentVariable("VS140COMNTOOLS");
+                    string vsCommonToolsPath = Environment.GetEnvironmentVariable("VS140COMNTOOLS");
                     if (vsCommonToolsPath != null)
                     {
                         _VCIncludePath = new FileInfo(vsCommonToolsPath += "\\..\\..\\VC\\include").FullName;
@@ -177,64 +179,65 @@ namespace Ino
             }
         }
 
-        private String _IotCoreAppDeploymentCache = null;
-        private String IotCoreAppDeploymentCache
+        private static string _IotCoreAppDeploymentCache = null;
+        private static string IotCoreAppDeploymentCache
         {
             get
             {
                 if (_IotCoreAppDeploymentCache == null)
                 {
-                    _IotCoreAppDeploymentCache = 
+                    _IotCoreAppDeploymentCache =
                         new FileInfo(Path.GetTempPath() + "IotCoreAppDeploymentCache").FullName;
                 }
                 return _IotCoreAppDeploymentCache;
             }
         }
 
-        public List<IContentChange> GetAppxContentChanges()
+        public ReadOnlyCollection<IContentChange> GetAppxContentChanges()
         {
-            String sdkVersionString = SdkVersionString;
-            var changes = new List<IContentChange>();
-            changes.Add(new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Identity/@Name", Value = IdentityName});
-            changes.Add(new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Identity/@Publisher", Value = IdentityPublisher });
-            changes.Add(new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Identity/@ProcessorArchitecture", Value = ProcessorArchitecture.ToString().ToLower() });
-            changes.Add(new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/mp:PhoneIdentity/@PhoneProductId", Value = PhoneIdentityGuid });
-            changes.Add(new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Properties/std:DisplayName", IsAttribute = false, Value = PropertiesDisplayName });
-            changes.Add(new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Properties/std:PublisherDisplayName", IsAttribute = false, Value = PropertiesPublisherDisplayName });
-            changes.Add(new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Dependencies/std:TargetDeviceFamily/@MinVersion", Value = sdkVersionString });
-            changes.Add(new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Dependencies/std:TargetDeviceFamily/@MaxVersionTested", Value = sdkVersionString });
-            changes.Add(new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Applications/std:Application/uap:VisualElements/@DisplayName", Value = DisplayName });
-            changes.Add(new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Applications/std:Application/uap:VisualElements/@Description", Value = Description });
-            changes.Add(new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Applications/std:Application/std:Extensions/std:Extension/@EntryPoint", Value = ExtensionEntryPoint });
-            changes.Add(new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Extensions/std:Extension/std:InProcessServer/std:Path", IsAttribute = false, Value = InProcessServerPath });
-            changes.Add(new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Extensions/std:Extension/std:InProcessServer/std:ActivatableClass/@ActivatableClassId", Value = InProcessServerActivatableClassId });
-            return changes;
+            var sdkVersionString = SdkVersionString;
+            var changes = new List<IContentChange>() {
+                        new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Identity/@Name", Value = IdentityName },
+                        new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Identity/@Publisher", Value = IdentityPublisher },
+                        new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Identity/@ProcessorArchitecture", Value = ProcessorArchitecture.ToString().ToLower(CultureInfo.InvariantCulture) },
+                        new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/mp:PhoneIdentity/@PhoneProductId", Value = PhoneIdentityGuid },
+                        new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Properties/std:DisplayName", IsAttribute = false, Value = PropertiesDisplayName },
+                        new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Properties/std:PublisherDisplayName", IsAttribute = false, Value = PropertiesPublisherDisplayName },
+                        new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Dependencies/std:TargetDeviceFamily/@MinVersion", Value = sdkVersionString },
+                        new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Dependencies/std:TargetDeviceFamily/@MaxVersionTested", Value = sdkVersionString },
+                        new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Applications/std:Application/uap:VisualElements/@DisplayName", Value = DisplayName },
+                        new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Applications/std:Application/uap:VisualElements/@Description", Value = Description },
+                        new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Applications/std:Application/std:Extensions/std:Extension/@EntryPoint", Value = ExtensionEntryPoint },
+                        new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Extensions/std:Extension/std:InProcessServer/std:Path", IsAttribute = false, Value = InProcessServerPath },
+                        new XmlContentChanges() { AppxRelativePath = @"AppxManifest.xml", XPath = @"/std:Package/std:Extensions/std:Extension/std:InProcessServer/std:ActivatableClass/@ActivatableClassId", Value = InProcessServerActivatableClassId },
+                    };
+            return new ReadOnlyCollection<IContentChange>(changes);
         }
 
-        public List<IContentChange> GetCapabilities()
+        public ReadOnlyCollection<IContentChange> GetCapabilities()
         {
-            var changes = new List<IContentChange>();
-
-            changes.Add(new AppxManifestCapabilityAddition() { CapabilityName = "internetClientServer" });
-            changes.Add(new AppxManifestCapabilityAddition() { CapabilityName = "lowLevelDevices", CapabilityNamespace = "iot" });
-            changes.Add(new AppxManifestCapabilityAddition() { Capability = "DeviceCapability", CapabilityName = "109b86ad-f53d-4b76-aa5f-821e2ddf2141" });
-
-            return changes;
+            var changes = new Collection<IContentChange>()
+                    {
+                        new AppxManifestCapabilityAddition() { CapabilityName = "internetClientServer" },
+                        new AppxManifestCapabilityAddition() { CapabilityName = "lowLevelDevices", CapabilityNamespace = "iot" },
+                        new AppxManifestCapabilityAddition() { Capability = "DeviceCapability", CapabilityName = "109b86ad-f53d-4b76-aa5f-821e2ddf2141" },
+                    };
+            return new ReadOnlyCollection<IContentChange>(changes);
         }
 
-        public List<FileStreamInfo> GetAppxContents()
+        public ReadOnlyCollection<FileStreamInfo> GetAppxContents()
         {
-            return new List<FileStreamInfo>();
+            return new ReadOnlyCollection<FileStreamInfo>(new List<FileStreamInfo>());
         }
 
-        public bool GetAppxMapContents(List<String> resourceMetadata, List<String> files, String outputFolder)
+        public bool GetAppxMapContents(Collection<string> resourceMetadata, Collection<string> files, string outputFolder)
         {
             files.Add("\"" + outputFolder + "\\" + PropertiesDisplayName + ".dll\" \"" + PropertiesDisplayName + ".dll\"");
             files.Add("\"" + outputFolder + "\\" + PropertiesDisplayName + ".winmd\" \"" + PropertiesDisplayName + ".winmd\"");
             return true;
         }
 
-        public List<FileStreamInfo> GetDependencies(List<IDependencyProvider> availableDependencyProviders)
+        public ReadOnlyCollection<FileStreamInfo> GetDependencies(Collection<IDependencyProvider> availableDependencyProviders)
         {
             foreach (var dependencyProvider in availableDependencyProviders)
             {
@@ -244,61 +247,63 @@ namespace Ino
                     return supportedDependencies["CPlusPlusUwp"].GetDependencies(ProcessorArchitecture, DependencyConfiguration, SdkVersion);
                 }
             }
-            return new List<FileStreamInfo>();
+            return new ReadOnlyCollection<FileStreamInfo>(new List<FileStreamInfo>());
         }
 
-        private void ExecuteExternalProcess(String executableFileName, String workingDirectory, String arguments, String logFileName)
+        private static void ExecuteExternalProcess(string executableFileName, string workingDirectory, string arguments, string logFileName)
         {
-            Process process = new Process();
-            process.StartInfo.FileName = executableFileName;
-            process.StartInfo.Arguments = arguments;
-            process.StartInfo.WorkingDirectory = workingDirectory;
-            process.StartInfo.RedirectStandardOutput = true;
-            process.StartInfo.RedirectStandardError = true;
-            process.StartInfo.UseShellExecute = false;
-            process.StartInfo.CreateNoWindow = true;
-            process.Start();
-
-            var output = new StringBuilder();
-            // Using WaitForExit would be cleaner, but for some reason, it
-            // hangs when using MakeAppx.  In the process of debugging that,
-            // I found that this never hangs.
-            while (!process.HasExited)
+            using (var process = new Process())
             {
-                output.Append(process.StandardOutput.ReadToEnd());
-                Thread.Sleep(100);
-            }
+                process.StartInfo.FileName = executableFileName;
+                process.StartInfo.Arguments = arguments;
+                process.StartInfo.WorkingDirectory = workingDirectory;
+                process.StartInfo.RedirectStandardOutput = true;
+                process.StartInfo.RedirectStandardError = true;
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.CreateNoWindow = true;
+                process.Start();
 
-            using (var logStream = new StreamWriter(logFileName, true))
-            {
-                logStream.Write("Command: ");
-                logStream.WriteLine(executableFileName);
-
-                logStream.WriteLine("Arguments: ");
-                logStream.WriteLine(arguments);
-
-                String errors = process.StandardError.ReadToEnd();
-                if (errors != null && errors.Length != 0)
+                var output = new StringBuilder();
+                // Using WaitForExit would be cleaner, but for some reason, it
+                // hangs when using MakeAppx.  In the process of debugging that,
+                // I found that this never hangs.
+                while (!process.HasExited)
                 {
-                    logStream.WriteLine("Errors:");
-                    logStream.Write(errors);
+                    output.Append(process.StandardOutput.ReadToEnd());
+                    Thread.Sleep(100);
                 }
-                logStream.WriteLine("\n\n\n\nFull Output:");
-                logStream.Write(output.ToString());
+
+                using (var logStream = new StreamWriter(logFileName, true))
+                {
+                    logStream.Write("Command: ");
+                    logStream.WriteLine(executableFileName);
+
+                    logStream.WriteLine("Arguments: ");
+                    logStream.WriteLine(arguments);
+
+                    var errors = process.StandardError.ReadToEnd();
+                    if (!string.IsNullOrEmpty(errors))
+                    {
+                        logStream.WriteLine("Errors:");
+                        logStream.Write(errors);
+                    }
+                    logStream.WriteLine("\n\n\n\nFull Output:");
+                    logStream.Write(output.ToString());
+                }
             }
         }
-        private bool CompileFile(String sourceFile, String sourceRoot, String cachedRoot, String fullBuildOutputDir, bool useCachedVersionIfAvailable)
+        private bool CompileFile(string sourceFile, string sourceRoot, string cachedRoot, string fullBuildOutputDir, bool useCachedVersionIfAvailable)
         {
-            return CompileFiles(new String[] { sourceFile }, sourceRoot, cachedRoot, fullBuildOutputDir, useCachedVersionIfAvailable);
+            return CompileFiles(new string[] { sourceFile }, sourceRoot, cachedRoot, fullBuildOutputDir, useCachedVersionIfAvailable);
         }
 
-        private bool CompileFiles(String [] sourceFiles, String sourceRoot, String cachedRoot, String fullBuildOutputDir, bool useCachedVersionIfAvailable)
+        private bool CompileFiles(string[] sourceFiles, string sourceRoot, string cachedRoot, string fullBuildOutputDir, bool useCachedVersionIfAvailable)
         {
             var filesToBuild = new StringBuilder();
             foreach (var sourceFile in sourceFiles)
             {
                 var sourceFileInfo = new FileInfo(sourceFile);
-                String objFilePath = fullBuildOutputDir + "\\" + sourceFileInfo.Name.Replace(sourceFileInfo.Extension, ".obj");
+                var objFilePath = fullBuildOutputDir + "\\" + sourceFileInfo.Name.Replace(sourceFileInfo.Extension, ".obj");
                 if (useCachedVersionIfAvailable && File.Exists(objFilePath))
                 {
                     continue;
@@ -359,62 +364,62 @@ namespace Ino
 
             compilerArgsBuilder.Append("/FU\"" + VCLibPath + "\\STORE\\REFERENCES\\PLATFORM.WINMD\" ");
 
-            String winmdReferenceFormat = "/FU\"" + SdkRoot + "REFERENCES\\{0}\\{1}\\{2}\" ";
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.APPLICATIONMODEL.ACTIVATION.ACTIVATEDEVENTSCONTRACT", "1.0.0.0", "WINDOWS.APPLICATIONMODEL.ACTIVATION.ACTIVATEDEVENTSCONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.APPLICATIONMODEL.ACTIVATION.ACTIVATIONCAMERASETTINGSCONTRACT", "1.0.0.0", "WINDOWS.APPLICATIONMODEL.ACTIVATION.ACTIVATIONCAMERASETTINGSCONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.APPLICATIONMODEL.ACTIVATION.CONTACTACTIVATEDEVENTSCONTRACT", "1.0.0.0", "WINDOWS.APPLICATIONMODEL.ACTIVATION.CONTACTACTIVATEDEVENTSCONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.APPLICATIONMODEL.ACTIVATION.WEBUISEARCHACTIVATEDEVENTSCONTRACT", "1.0.0.0", "WINDOWS.APPLICATIONMODEL.ACTIVATION.WEBUISEARCHACTIVATEDEVENTSCONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.APPLICATIONMODEL.BACKGROUND.BACKGROUNDALARMAPPLICATIONCONTRACT", "1.0.0.0", "WINDOWS.APPLICATIONMODEL.BACKGROUND.BACKGROUNDALARMAPPLICATIONCONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.APPLICATIONMODEL.CALLS.BACKGROUND.CALLSBACKGROUNDCONTRACT", "1.0.0.0", "WINDOWS.APPLICATIONMODEL.CALLS.BACKGROUND.CALLSBACKGROUNDCONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.APPLICATIONMODEL.CALLS.LOCKSCREENCALLCONTRACT", "1.0.0.0", "WINDOWS.APPLICATIONMODEL.CALLS.LOCKSCREENCALLCONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.APPLICATIONMODEL.RESOURCES.MANAGEMENT.RESOURCEINDEXERCONTRACT", "1.0.0.0", "WINDOWS.APPLICATIONMODEL.RESOURCES.MANAGEMENT.RESOURCEINDEXERCONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.APPLICATIONMODEL.SEARCH.CORE.SEARCHCORECONTRACT", "1.0.0.0", "WINDOWS.APPLICATIONMODEL.SEARCH.CORE.SEARCHCORECONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.APPLICATIONMODEL.SEARCH.SEARCHCONTRACT", "1.0.0.0", "WINDOWS.APPLICATIONMODEL.SEARCH.SEARCHCONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.APPLICATIONMODEL.WALLET.WALLETCONTRACT", "1.0.0.0", "WINDOWS.APPLICATIONMODEL.WALLET.WALLETCONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.DEVICES.CUSTOM.CUSTOMDEVICECONTRACT", "1.0.0.0", "WINDOWS.DEVICES.CUSTOM.CUSTOMDEVICECONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.DEVICES.PORTABLE.PORTABLEDEVICECONTRACT", "1.0.0.0", "WINDOWS.DEVICES.PORTABLE.PORTABLEDEVICECONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.DEVICES.PRINTERS.EXTENSIONS.EXTENSIONSCONTRACT", "2.0.0.0", "WINDOWS.DEVICES.PRINTERS.EXTENSIONS.EXTENSIONSCONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.DEVICES.SCANNERS.SCANNERDEVICECONTRACT", "1.0.0.0", "WINDOWS.DEVICES.SCANNERS.SCANNERDEVICECONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.DEVICES.SMS.LEGACYSMSAPICONTRACT", "1.0.0.0", "WINDOWS.DEVICES.SMS.LEGACYSMSAPICONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.GAMING.PREVIEW.GAMESENUMERATIONCONTRACT", "1.0.0.0", "WINDOWS.GAMING.PREVIEW.GAMESENUMERATIONCONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.GLOBALIZATION.GLOBALIZATIONJAPANESEPHONETICANALYZERCONTRACT", "1.0.0.0", "WINDOWS.GLOBALIZATION.GLOBALIZATIONJAPANESEPHONETICANALYZERCONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.MANAGEMENT.DEPLOYMENT.PREVIEW.DEPLOYMENTPREVIEWCONTRACT", "1.0.0.0", "WINDOWS.MANAGEMENT.DEPLOYMENT.PREVIEW.DEPLOYMENTPREVIEWCONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.MANAGEMENT.ORCHESTRATION.ORCHESTRATIONCONTRACT", "1.0.0.0", "WINDOWS.MANAGEMENT.ORCHESTRATION.ORCHESTRATIONCONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.MANAGEMENT.WORKPLACE.WORKPLACESETTINGSCONTRACT", "1.0.0.0", "WINDOWS.MANAGEMENT.WORKPLACE.WORKPLACESETTINGSCONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.MEDIA.CAPTURE.APPCAPTURECONTRACT", "2.0.0.0", "WINDOWS.MEDIA.CAPTURE.APPCAPTURECONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.MEDIA.CAPTURE.CAMERACAPTUREUICONTRACT", "1.0.0.0", "WINDOWS.MEDIA.CAPTURE.CAMERACAPTUREUICONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.MEDIA.DEVICES.CALLCONTROLCONTRACT", "1.0.0.0", "WINDOWS.MEDIA.DEVICES.CALLCONTROLCONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.MEDIA.MEDIACONTROLCONTRACT", "1.0.0.0", "WINDOWS.MEDIA.MEDIACONTROLCONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.MEDIA.PLAYLISTS.PLAYLISTSCONTRACT", "1.0.0.0", "WINDOWS.MEDIA.PLAYLISTS.PLAYLISTSCONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.MEDIA.PROTECTION.PROTECTIONRENEWALCONTRACT", "1.0.0.0", "WINDOWS.MEDIA.PROTECTION.PROTECTIONRENEWALCONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.NETWORKING.NETWORKOPERATORS.LEGACYNETWORKOPERATORSCONTRACT", "1.0.0.0", "WINDOWS.NETWORKING.NETWORKOPERATORS.LEGACYNETWORKOPERATORSCONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.NETWORKING.SOCKETS.CONTROLCHANNELTRIGGERCONTRACT", "1.0.0.0", "WINDOWS.NETWORKING.SOCKETS.CONTROLCHANNELTRIGGERCONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.SECURITY.ENTERPRISEDATA.ENTERPRISEDATACONTRACT", "2.0.0.0", "WINDOWS.SECURITY.ENTERPRISEDATA.ENTERPRISEDATACONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.SECURITY.EXCHANGEACTIVESYNCPROVISIONING.EASCONTRACT", "1.0.0.0", "WINDOWS.SECURITY.EXCHANGEACTIVESYNCPROVISIONING.EASCONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.SERVICES.MAPS.GUIDANCECONTRACT", "2.0.0.0", "WINDOWS.SERVICES.MAPS.GUIDANCECONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.SERVICES.MAPS.LOCALSEARCHCONTRACT", "2.0.0.0", "WINDOWS.SERVICES.MAPS.LOCALSEARCHCONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.SYSTEM.PROFILE.PROFILEHARDWARETOKENCONTRACT", "1.0.0.0", "WINDOWS.SYSTEM.PROFILE.PROFILEHARDWARETOKENCONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.SYSTEM.PROFILE.PROFILERETAILINFOCONTRACT", "1.0.0.0", "WINDOWS.SYSTEM.PROFILE.PROFILERETAILINFOCONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.SYSTEM.PROFILE.SYSTEMMANUFACTURERS.SYSTEMMANUFACTURERSCONTRACT", "1.0.0.0", "WINDOWS.SYSTEM.PROFILE.SYSTEMMANUFACTURERS.SYSTEMMANUFACTURERSCONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.SYSTEM.USERPROFILE.USERPROFILECONTRACT", "1.0.0.0", "WINDOWS.SYSTEM.USERPROFILE.USERPROFILECONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.SYSTEM.USERPROFILE.USERPROFILELOCKSCREENCONTRACT", "1.0.0.0", "WINDOWS.SYSTEM.USERPROFILE.USERPROFILELOCKSCREENCONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.UI.APPLICATIONSETTINGS.APPLICATIONSSETTINGSCONTRACT", "1.0.0.0", "WINDOWS.UI.APPLICATIONSETTINGS.APPLICATIONSSETTINGSCONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.UI.CORE.ANIMATIONMETRICS.ANIMATIONMETRICSCONTRACT", "1.0.0.0", "WINDOWS.UI.CORE.ANIMATIONMETRICS.ANIMATIONMETRICSCONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.UI.CORE.COREWINDOWDIALOGSCONTRACT", "1.0.0.0", "WINDOWS.UI.CORE.COREWINDOWDIALOGSCONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.UI.XAML.HOSTING.HOSTINGCONTRACT", "1.0.0.0", "WINDOWS.UI.XAML.HOSTING.HOSTINGCONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.WEB.HTTP.DIAGNOSTICS.HTTPDIAGNOSTICSCONTRACT", "1.0.0.0", "WINDOWS.WEB.HTTP.DIAGNOSTICS.HTTPDIAGNOSTICSCONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.APPLICATIONMODEL.CALLS.CALLSVOIPCONTRACT", "1.0.0.0", "WINDOWS.APPLICATIONMODEL.CALLS.CALLSVOIPCONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.DEVICES.PRINTERS.PRINTERSCONTRACT", "1.0.0.0", "WINDOWS.DEVICES.PRINTERS.PRINTERSCONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.FOUNDATION.FOUNDATIONCONTRACT", "1.0.0.0", "WINDOWS.FOUNDATION.FOUNDATIONCONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.FOUNDATION.UNIVERSALAPICONTRACT", "2.0.0.0", "WINDOWS.FOUNDATION.UNIVERSALAPICONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.GRAPHICS.PRINTING3D.PRINTING3DCONTRACT", "2.0.0.0", "WINDOWS.GRAPHICS.PRINTING3D.PRINTING3DCONTRACT.WINMD"));
-            compilerArgsBuilder.Append(String.Format(winmdReferenceFormat, "WINDOWS.NETWORKING.CONNECTIVITY.WWANCONTRACT", "1.0.0.0", "WINDOWS.NETWORKING.CONNECTIVITY.WWANCONTRACT.WINMD"));
+            var winmdReferenceFormat = "/FU\"" + SdkRoot + "REFERENCES\\{0}\\{1}\\{2}\" ";
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.APPLICATIONMODEL.ACTIVATION.ACTIVATEDEVENTSCONTRACT", "1.0.0.0", "WINDOWS.APPLICATIONMODEL.ACTIVATION.ACTIVATEDEVENTSCONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.APPLICATIONMODEL.ACTIVATION.ACTIVATIONCAMERASETTINGSCONTRACT", "1.0.0.0", "WINDOWS.APPLICATIONMODEL.ACTIVATION.ACTIVATIONCAMERASETTINGSCONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.APPLICATIONMODEL.ACTIVATION.CONTACTACTIVATEDEVENTSCONTRACT", "1.0.0.0", "WINDOWS.APPLICATIONMODEL.ACTIVATION.CONTACTACTIVATEDEVENTSCONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.APPLICATIONMODEL.ACTIVATION.WEBUISEARCHACTIVATEDEVENTSCONTRACT", "1.0.0.0", "WINDOWS.APPLICATIONMODEL.ACTIVATION.WEBUISEARCHACTIVATEDEVENTSCONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.APPLICATIONMODEL.BACKGROUND.BACKGROUNDALARMAPPLICATIONCONTRACT", "1.0.0.0", "WINDOWS.APPLICATIONMODEL.BACKGROUND.BACKGROUNDALARMAPPLICATIONCONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.APPLICATIONMODEL.CALLS.BACKGROUND.CALLSBACKGROUNDCONTRACT", "1.0.0.0", "WINDOWS.APPLICATIONMODEL.CALLS.BACKGROUND.CALLSBACKGROUNDCONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.APPLICATIONMODEL.CALLS.LOCKSCREENCALLCONTRACT", "1.0.0.0", "WINDOWS.APPLICATIONMODEL.CALLS.LOCKSCREENCALLCONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.APPLICATIONMODEL.RESOURCES.MANAGEMENT.RESOURCEINDEXERCONTRACT", "1.0.0.0", "WINDOWS.APPLICATIONMODEL.RESOURCES.MANAGEMENT.RESOURCEINDEXERCONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.APPLICATIONMODEL.SEARCH.CORE.SEARCHCORECONTRACT", "1.0.0.0", "WINDOWS.APPLICATIONMODEL.SEARCH.CORE.SEARCHCORECONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.APPLICATIONMODEL.SEARCH.SEARCHCONTRACT", "1.0.0.0", "WINDOWS.APPLICATIONMODEL.SEARCH.SEARCHCONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.APPLICATIONMODEL.WALLET.WALLETCONTRACT", "1.0.0.0", "WINDOWS.APPLICATIONMODEL.WALLET.WALLETCONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.DEVICES.CUSTOM.CUSTOMDEVICECONTRACT", "1.0.0.0", "WINDOWS.DEVICES.CUSTOM.CUSTOMDEVICECONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.DEVICES.PORTABLE.PORTABLEDEVICECONTRACT", "1.0.0.0", "WINDOWS.DEVICES.PORTABLE.PORTABLEDEVICECONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.DEVICES.PRINTERS.EXTENSIONS.EXTENSIONSCONTRACT", "2.0.0.0", "WINDOWS.DEVICES.PRINTERS.EXTENSIONS.EXTENSIONSCONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.DEVICES.SCANNERS.SCANNERDEVICECONTRACT", "1.0.0.0", "WINDOWS.DEVICES.SCANNERS.SCANNERDEVICECONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.DEVICES.SMS.LEGACYSMSAPICONTRACT", "1.0.0.0", "WINDOWS.DEVICES.SMS.LEGACYSMSAPICONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.GAMING.PREVIEW.GAMESENUMERATIONCONTRACT", "1.0.0.0", "WINDOWS.GAMING.PREVIEW.GAMESENUMERATIONCONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.GLOBALIZATION.GLOBALIZATIONJAPANESEPHONETICANALYZERCONTRACT", "1.0.0.0", "WINDOWS.GLOBALIZATION.GLOBALIZATIONJAPANESEPHONETICANALYZERCONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.MANAGEMENT.DEPLOYMENT.PREVIEW.DEPLOYMENTPREVIEWCONTRACT", "1.0.0.0", "WINDOWS.MANAGEMENT.DEPLOYMENT.PREVIEW.DEPLOYMENTPREVIEWCONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.MANAGEMENT.ORCHESTRATION.ORCHESTRATIONCONTRACT", "1.0.0.0", "WINDOWS.MANAGEMENT.ORCHESTRATION.ORCHESTRATIONCONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.MANAGEMENT.WORKPLACE.WORKPLACESETTINGSCONTRACT", "1.0.0.0", "WINDOWS.MANAGEMENT.WORKPLACE.WORKPLACESETTINGSCONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.MEDIA.CAPTURE.APPCAPTURECONTRACT", "2.0.0.0", "WINDOWS.MEDIA.CAPTURE.APPCAPTURECONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.MEDIA.CAPTURE.CAMERACAPTUREUICONTRACT", "1.0.0.0", "WINDOWS.MEDIA.CAPTURE.CAMERACAPTUREUICONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.MEDIA.DEVICES.CALLCONTROLCONTRACT", "1.0.0.0", "WINDOWS.MEDIA.DEVICES.CALLCONTROLCONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.MEDIA.MEDIACONTROLCONTRACT", "1.0.0.0", "WINDOWS.MEDIA.MEDIACONTROLCONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.MEDIA.PLAYLISTS.PLAYLISTSCONTRACT", "1.0.0.0", "WINDOWS.MEDIA.PLAYLISTS.PLAYLISTSCONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.MEDIA.PROTECTION.PROTECTIONRENEWALCONTRACT", "1.0.0.0", "WINDOWS.MEDIA.PROTECTION.PROTECTIONRENEWALCONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.NETWORKING.NETWORKOPERATORS.LEGACYNETWORKOPERATORSCONTRACT", "1.0.0.0", "WINDOWS.NETWORKING.NETWORKOPERATORS.LEGACYNETWORKOPERATORSCONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.NETWORKING.SOCKETS.CONTROLCHANNELTRIGGERCONTRACT", "1.0.0.0", "WINDOWS.NETWORKING.SOCKETS.CONTROLCHANNELTRIGGERCONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.SECURITY.ENTERPRISEDATA.ENTERPRISEDATACONTRACT", "2.0.0.0", "WINDOWS.SECURITY.ENTERPRISEDATA.ENTERPRISEDATACONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.SECURITY.EXCHANGEACTIVESYNCPROVISIONING.EASCONTRACT", "1.0.0.0", "WINDOWS.SECURITY.EXCHANGEACTIVESYNCPROVISIONING.EASCONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.SERVICES.MAPS.GUIDANCECONTRACT", "2.0.0.0", "WINDOWS.SERVICES.MAPS.GUIDANCECONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.SERVICES.MAPS.LOCALSEARCHCONTRACT", "2.0.0.0", "WINDOWS.SERVICES.MAPS.LOCALSEARCHCONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.SYSTEM.PROFILE.PROFILEHARDWARETOKENCONTRACT", "1.0.0.0", "WINDOWS.SYSTEM.PROFILE.PROFILEHARDWARETOKENCONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.SYSTEM.PROFILE.PROFILERETAILINFOCONTRACT", "1.0.0.0", "WINDOWS.SYSTEM.PROFILE.PROFILERETAILINFOCONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.SYSTEM.PROFILE.SYSTEMMANUFACTURERS.SYSTEMMANUFACTURERSCONTRACT", "1.0.0.0", "WINDOWS.SYSTEM.PROFILE.SYSTEMMANUFACTURERS.SYSTEMMANUFACTURERSCONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.SYSTEM.USERPROFILE.USERPROFILECONTRACT", "1.0.0.0", "WINDOWS.SYSTEM.USERPROFILE.USERPROFILECONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.SYSTEM.USERPROFILE.USERPROFILELOCKSCREENCONTRACT", "1.0.0.0", "WINDOWS.SYSTEM.USERPROFILE.USERPROFILELOCKSCREENCONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.UI.APPLICATIONSETTINGS.APPLICATIONSSETTINGSCONTRACT", "1.0.0.0", "WINDOWS.UI.APPLICATIONSETTINGS.APPLICATIONSSETTINGSCONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.UI.CORE.ANIMATIONMETRICS.ANIMATIONMETRICSCONTRACT", "1.0.0.0", "WINDOWS.UI.CORE.ANIMATIONMETRICS.ANIMATIONMETRICSCONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.UI.CORE.COREWINDOWDIALOGSCONTRACT", "1.0.0.0", "WINDOWS.UI.CORE.COREWINDOWDIALOGSCONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.UI.XAML.HOSTING.HOSTINGCONTRACT", "1.0.0.0", "WINDOWS.UI.XAML.HOSTING.HOSTINGCONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.WEB.HTTP.DIAGNOSTICS.HTTPDIAGNOSTICSCONTRACT", "1.0.0.0", "WINDOWS.WEB.HTTP.DIAGNOSTICS.HTTPDIAGNOSTICSCONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.APPLICATIONMODEL.CALLS.CALLSVOIPCONTRACT", "1.0.0.0", "WINDOWS.APPLICATIONMODEL.CALLS.CALLSVOIPCONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.DEVICES.PRINTERS.PRINTERSCONTRACT", "1.0.0.0", "WINDOWS.DEVICES.PRINTERS.PRINTERSCONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.FOUNDATION.FOUNDATIONCONTRACT", "1.0.0.0", "WINDOWS.FOUNDATION.FOUNDATIONCONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.FOUNDATION.UNIVERSALAPICONTRACT", "2.0.0.0", "WINDOWS.FOUNDATION.UNIVERSALAPICONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.GRAPHICS.PRINTING3D.PRINTING3DCONTRACT", "2.0.0.0", "WINDOWS.GRAPHICS.PRINTING3D.PRINTING3DCONTRACT.WINMD"));
+            compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.NETWORKING.CONNECTIVITY.WWANCONTRACT", "1.0.0.0", "WINDOWS.NETWORKING.CONNECTIVITY.WWANCONTRACT.WINMD"));
             compilerArgsBuilder.Append("/analyze- ");
 
             compilerArgsBuilder.Append(filesToBuild.ToString());
 
             // Compile the given files
-            string compilerArgs = compilerArgsBuilder.ToString();
+            var compilerArgs = compilerArgsBuilder.ToString();
             ExecuteExternalProcess(CompilerPathFromRegistry, VCToolsWorkingDirectoryFromRegistry, compilerArgs, sourceRoot + "\\compile.log");
 
             // Check for the resulting obj file to determine success
@@ -425,20 +430,19 @@ namespace Ino
                 var filename = sourceFileInfo.Name;
 
                 var objFilename = filename.Substring(0, filename.Length - extension.Length) + ".obj";
-                String objFilePath = fullBuildOutputDir + "\\" + objFilename;
+                var objFilePath = fullBuildOutputDir + "\\" + objFilename;
                 if (!File.Exists(objFilePath))
                 {
-                    Debug.WriteLine(String.Format("Failed to compile {0} to {1}.", sourceFile, objFilePath));
+                    Debug.WriteLine(string.Format(CultureInfo.InvariantCulture, Resource.InoProject_CompileFailed, sourceFile, objFilePath));
                     return false;
                 }
             }
             return true;
         }
 
-        private bool CopyResourceFileBuildFolderAndUnzip(String resourceName, String outputFolder, String unzipFolder)
+        private static bool CopyResourceFileBuildFolderAndUnzip(string resourceName, string outputFolder, string unzipFolder)
         {
-            var status = CopyResourceFileBuildFolder(resourceName, outputFolder);
-            if (!status)
+            if (!CopyResourceFileBuildFolder(resourceName, outputFolder))
             {
                 return false;
             }
@@ -446,10 +450,10 @@ namespace Ino
             ZipFile.ExtractToDirectory(outputFolder + @"\" + resourceName, outputFolder + "\\" + unzipFolder);
             return Directory.Exists(outputFolder + "\\" + unzipFolder);
         }
-        private bool CopyResourceFileBuildFolder(String resourceName, String outputFolder)
+        private static bool CopyResourceFileBuildFolder(string resourceName, string outputFolder)
         {
-            var names = Assembly.GetExecutingAssembly().GetManifestResourceNames();
-            var resource = String.Format(@"Ino.Resources.{0}", resourceName);
+            var assemblyName = typeof(InoProject).Assembly.GetName().Name;
+            var resource = string.Format(CultureInfo.InvariantCulture, @"{0}.Resources.{1}", assemblyName, resourceName);
             new FileStreamInfo()
             {
                 AppxRelativePath = resourceName,
@@ -459,58 +463,55 @@ namespace Ino
             return File.Exists(outputFolder + "\\" + resourceName);
         }
 
-        private async Task<bool> Compile(String outputFolder, StreamWriter logging)
+        private Task<bool> Compile(string outputFolder, StreamWriter logging)
         {
             if (!File.Exists(CompilerPathFromRegistry))
             {
-                logging.WriteLine(String.Format("Compiler cannot be found. {0}", CompilerPathFromRegistry));
-                return false;
+                logging.WriteLine(string.Format(CultureInfo.InvariantCulture, Resource.InoProject_CompilerNotFound, CompilerPathFromRegistry));
+                return Task.FromResult(false);
             }
 
             if (SdkRoot == null)
             {
-                logging.WriteLine(String.Format("SDK cannot be found."));
-                return false;
+                logging.WriteLine(string.Format(CultureInfo.InvariantCulture, Resource.InoProject_SdkNotFound));
+                return Task.FromResult(false);
             }
 
             if (VCIncludePath == null)
             {
-                logging.WriteLine(String.Format("VC Include files cannot be found."));
-                return false;
+                logging.WriteLine(string.Format(CultureInfo.InvariantCulture, Resource.InoProject_VcIncludesNotFound));
+                return Task.FromResult(false);
             }
 
             if (VCLibPath == null)
             {
-                logging.WriteLine(String.Format("VC library files cannot be found. (platform.winmd)"));
-                return false;
+                logging.WriteLine(string.Format(CultureInfo.InvariantCulture, Resource.InoProject_VcLibsNotFound));
+                return Task.FromResult(false);
             }
 
             // Create build folder (i.e. ARM\Debug or X86\Debug)
-            String buildOutputDir = ProcessorArchitecture + "\\" + DependencyConfiguration + "\\";
-            String fullBuildOutputDir = outputFolder + "\\" + buildOutputDir;
+            var buildOutputDir = ProcessorArchitecture + "\\" + DependencyConfiguration + "\\";
+            var fullBuildOutputDir = outputFolder + "\\" + buildOutputDir;
             if (!Directory.Exists(fullBuildOutputDir))
             {
                 Directory.CreateDirectory(fullBuildOutputDir);
             }
-            bool success = false;
 
             // Get PCH.H from resources
-            success = CopyResourceFileBuildFolder("pch.h", outputFolder);
-            if (!success)
+            if (!CopyResourceFileBuildFolder("pch.h", outputFolder))
             {
-                Debug.WriteLine(String.Format("Failed to copy pch.h from resources"));
-                return false;
+                Debug.WriteLine(string.Format(CultureInfo.InvariantCulture, Resource.InoProject_PchFailure));
+                return Task.FromResult(false);
             }
             // Get StartupTask.cpp from resources
-            success = CopyResourceFileBuildFolder("StartupTask.cpp", outputFolder);
-            if (!success)
+            if (!CopyResourceFileBuildFolder("StartupTask.cpp", outputFolder))
             {
-                Debug.WriteLine(String.Format("Failed to copy StartupTask.cpp from resources"));
-                return false;
+                Debug.WriteLine(string.Format(CultureInfo.InvariantCulture, Resource.InoProject_StartupTaskFailure));
+                return Task.FromResult(false);
             }
 
-            String versionedCache = IotCoreAppDeploymentCache + "\\" + Assembly.GetAssembly(typeof(InoProject)).GetName().Version;
-            String versionedConfigCache = versionedCache + "\\" + buildOutputDir;
+            string versionedCache = IotCoreAppDeploymentCache + "\\" + Assembly.GetAssembly(typeof(InoProject)).GetName().Version;
+            string versionedConfigCache = versionedCache + "\\" + buildOutputDir;
             if (!Directory.Exists(versionedCache))
             {
                 Directory.CreateDirectory(versionedCache);
@@ -522,106 +523,101 @@ namespace Ino
             if (!Directory.Exists(versionedCache + "\\arduino"))
             {
                 // Get arduino sources from resources
-                success = CopyResourceFileBuildFolderAndUnzip("microsoft.iot.sdkfromarduino.1.1.1.nupkg", versionedCache, "arduino");
-                if (!success)
+                if (!CopyResourceFileBuildFolderAndUnzip("microsoft.iot.sdkfromarduino.1.1.1.nupkg", versionedCache, "arduino"))
                 {
-                    Debug.WriteLine(String.Format("Failed to copy microsoft.iot.sdkfromarduino.1.1.1.nupkg from resources and unzip it"));
-                    return false;
+                    Debug.WriteLine(string.Format(CultureInfo.InvariantCulture, Resource.InoProject_ArduinoNupkgFailure));
+                    return Task.FromResult(false);
                 }
             }
             if (!Directory.Exists(versionedCache + "\\lightning"))
             {
                 // Get lightning sources from resources
-                success = CopyResourceFileBuildFolderAndUnzip("microsoft.iot.lightning.1.0.2-alpha.nupkg", versionedCache, "lightning");
-                if (!success)
+                if (!CopyResourceFileBuildFolderAndUnzip("microsoft.iot.lightning.1.0.2-alpha.nupkg", versionedCache, "lightning"))
                 {
-                    Debug.WriteLine(String.Format("Failed to copy microsoft.iot.lightning.1.0.2-alpha.nupkg from resources and unzip it"));
-                    return false;
+                    Debug.WriteLine(string.Format(CultureInfo.InvariantCulture, Resource.InoProject_LightningNupkgFailure));
+                    return Task.FromResult(false);
                 }
             }
 
-            String[] dependencySourceCodeToBuild = new String[] {
-                versionedCache + "\\arduino\\build\\native\\source\\IPAddress.cpp",
-                versionedCache + "\\arduino\\build\\native\\source\\LiquidCrystal.cpp",
-                versionedCache + "\\arduino\\build\\native\\source\\Print.cpp",
-                versionedCache + "\\arduino\\build\\native\\source\\Stepper.cpp",
-                versionedCache + "\\arduino\\build\\native\\source\\Stream.cpp",
-                versionedCache + "\\arduino\\build\\native\\source\\WString.cpp",
-                versionedCache + "\\lightning\\build\\native\\source\\arduino.cpp",
-                versionedCache + "\\lightning\\build\\native\\source\\BoardPins.cpp",
-                versionedCache + "\\lightning\\build\\native\\source\\BcmI2cController.cpp",
-                versionedCache + "\\lightning\\build\\native\\source\\BcmSpiController.cpp",
-                versionedCache + "\\lightning\\build\\native\\source\\BtI2cController.cpp",
-                versionedCache + "\\lightning\\build\\native\\source\\BtSpiController.cpp",
-                versionedCache + "\\lightning\\build\\native\\source\\CY8C9540ASupport.cpp",
-                versionedCache + "\\lightning\\build\\native\\source\\DmapSupport.cpp",
-                versionedCache + "\\lightning\\build\\native\\source\\DmapErrors.cpp",
-                versionedCache + "\\lightning\\build\\native\\source\\eeprom.cpp",
-                versionedCache + "\\lightning\\build\\native\\source\\GpioController.cpp",
-                versionedCache + "\\lightning\\build\\native\\source\\HardwareSerial.cpp",
-                versionedCache + "\\lightning\\build\\native\\source\\I2c.cpp",
-                versionedCache + "\\lightning\\build\\native\\source\\I2cController.cpp",
-                versionedCache + "\\lightning\\build\\native\\source\\I2cTransaction.cpp",
-                versionedCache + "\\lightning\\build\\native\\source\\NetworkSerial.cpp",
-                versionedCache + "\\lightning\\build\\native\\source\\PCA9685Support.cpp",
-                versionedCache + "\\lightning\\build\\native\\source\\PCAL9535ASupport.cpp",
-                versionedCache + "\\lightning\\build\\native\\source\\PulseIn.cpp",
-                versionedCache + "\\lightning\\build\\native\\source\\Servo.cpp",
-                versionedCache + "\\lightning\\build\\native\\source\\Spi.cpp",
-                versionedCache + "\\lightning\\build\\native\\source\\SpiController.cpp",
-                versionedCache + "\\lightning\\build\\native\\source\\QuarkSpiController.cpp",
-            };
+            var dependencySourceCodeToBuild = new string[] {
+                        versionedCache + "\\arduino\\build\\native\\source\\IPAddress.cpp",
+                        versionedCache + "\\arduino\\build\\native\\source\\LiquidCrystal.cpp",
+                        versionedCache + "\\arduino\\build\\native\\source\\Print.cpp",
+                        versionedCache + "\\arduino\\build\\native\\source\\Stepper.cpp",
+                        versionedCache + "\\arduino\\build\\native\\source\\Stream.cpp",
+                        versionedCache + "\\arduino\\build\\native\\source\\WString.cpp",
+                        versionedCache + "\\lightning\\build\\native\\source\\arduino.cpp",
+                        versionedCache + "\\lightning\\build\\native\\source\\BoardPins.cpp",
+                        versionedCache + "\\lightning\\build\\native\\source\\BcmI2cController.cpp",
+                        versionedCache + "\\lightning\\build\\native\\source\\BcmSpiController.cpp",
+                        versionedCache + "\\lightning\\build\\native\\source\\BtI2cController.cpp",
+                        versionedCache + "\\lightning\\build\\native\\source\\BtSpiController.cpp",
+                        versionedCache + "\\lightning\\build\\native\\source\\CY8C9540ASupport.cpp",
+                        versionedCache + "\\lightning\\build\\native\\source\\DmapSupport.cpp",
+                        versionedCache + "\\lightning\\build\\native\\source\\DmapErrors.cpp",
+                        versionedCache + "\\lightning\\build\\native\\source\\eeprom.cpp",
+                        versionedCache + "\\lightning\\build\\native\\source\\GpioController.cpp",
+                        versionedCache + "\\lightning\\build\\native\\source\\HardwareSerial.cpp",
+                        versionedCache + "\\lightning\\build\\native\\source\\I2c.cpp",
+                        versionedCache + "\\lightning\\build\\native\\source\\I2cController.cpp",
+                        versionedCache + "\\lightning\\build\\native\\source\\I2cTransaction.cpp",
+                        versionedCache + "\\lightning\\build\\native\\source\\NetworkSerial.cpp",
+                        versionedCache + "\\lightning\\build\\native\\source\\PCA9685Support.cpp",
+                        versionedCache + "\\lightning\\build\\native\\source\\PCAL9535ASupport.cpp",
+                        versionedCache + "\\lightning\\build\\native\\source\\PulseIn.cpp",
+                        versionedCache + "\\lightning\\build\\native\\source\\Servo.cpp",
+                        versionedCache + "\\lightning\\build\\native\\source\\Spi.cpp",
+                        versionedCache + "\\lightning\\build\\native\\source\\SpiController.cpp",
+                        versionedCache + "\\lightning\\build\\native\\source\\QuarkSpiController.cpp",
+                    };
 
             // Compile the arduino and lightning sources
-            success = CompileFiles(dependencySourceCodeToBuild, outputFolder, versionedCache, versionedCache + "\\" + buildOutputDir, true);
-            if (!success)
+            if (!CompileFiles(dependencySourceCodeToBuild, outputFolder, versionedCache, versionedCache + "\\" + buildOutputDir, true))
             {
-                logging.WriteLine("... failed to compile dependency source code.");
-                return false;
+                logging.WriteLine(Resource.InoProject_CompilationFailure);
+                return Task.FromResult(false);
             }
 
             // Compile StartupTask.cpp
-            success = CompileFile(outputFolder + @"\StartupTask.cpp", outputFolder, versionedCache, fullBuildOutputDir, false);
-            if (!success)
+            if (!CompileFile(outputFolder + @"\StartupTask.cpp", outputFolder, versionedCache, fullBuildOutputDir, false))
             {
-                logging.WriteLine("... failed to compile dependency source code.");
-                Debug.WriteLine(String.Format("Failed to compile {0}.", outputFolder + @"\StartupTask.cpp"));
-                return false;
+                logging.WriteLine(Resource.InoProject_CompilationFailure);
+                Debug.WriteLine(string.Format(CultureInfo.InvariantCulture, Resource.InoProject_FileCompilationFailure, outputFolder + @"\StartupTask.cpp"));
+                return Task.FromResult(false);
             }
             // Compile the users INO input file
-            success = CompileFile(SourceInput, outputFolder, versionedCache, fullBuildOutputDir, false);
-            if (!success)
+            if (!CompileFile(SourceInput, outputFolder, versionedCache, fullBuildOutputDir, false))
             {
-                logging.WriteLine(String.Format("... failed to compile {0}.", SourceInput));
-                return false;
+                logging.WriteLine(string.Format(CultureInfo.InvariantCulture, Resource.InoProject_FileCompilationFailure, SourceInput));
+                return Task.FromResult(false);
             }
 
-            return success;
+            return Task.FromResult(true);
         }
 
-        private async Task<bool> Link(String outputFolder, StreamWriter logging)
+        private Task<bool> Link(string outputFolder, StreamWriter logging)
         {
             if (!File.Exists(LinkerPathFromRegistry))
             {
-                logging.WriteLine(String.Format("Linker cannot be found. {0}", LinkerPathFromRegistry));
-                return false;
+                logging.WriteLine(string.Format(CultureInfo.InvariantCulture, Resource.InoProject_LinkerNotFound, LinkerPathFromRegistry));
+                return Task.FromResult(false);
             }
 
             if (SdkRoot == null)
             {
-                logging.WriteLine(String.Format("SDK cannot be found."));
-                return false;
+                logging.WriteLine(string.Format(CultureInfo.InvariantCulture, Resource.InoProject_SdkNotFound));
+                return Task.FromResult(false);
             }
 
             if (VCLibPath == null)
             {
-                logging.WriteLine(String.Format("VC library files cannot be found."));
-                return false;
+                logging.WriteLine(string.Format(CultureInfo.InvariantCulture, Resource.InoProject_VcLibsNotFound));
+                return Task.FromResult(false);
             }
 
-            String versionedCache = IotCoreAppDeploymentCache + "\\" + Assembly.GetAssembly(typeof(InoProject)).GetName().Version;
-            String buildOutputDir = ProcessorArchitecture + "\\" + DependencyConfiguration + "\\";
-            String fullBuildOutputDir = outputFolder + "\\" + buildOutputDir;
+            var versionedCache = IotCoreAppDeploymentCache + "\\" + Assembly.GetAssembly(typeof(InoProject)).GetName().Version;
+            var buildOutputDir = ProcessorArchitecture + "\\" + DependencyConfiguration + "\\";
+            var fullBuildOutputDir = outputFolder + "\\" + buildOutputDir;
 
             var linkerArgsBuilder = new StringBuilder();
             linkerArgsBuilder.Append("/OUT:\"" + outputFolder + "\\" + InProcessServerPath + "\" ");
@@ -643,12 +639,12 @@ namespace Ino
             linkerArgsBuilder.Append("/DLL ");
 
             // Add LIBPATH entry for VC libs (vccorlib*.lib, etc)
-            String libPath = VCLibPath + "\\store";
+            var libPath = VCLibPath + "\\store";
             if (ProcessorArchitecture == TargetPlatform.ARM)
             {
                 libPath += "\\arm";
             }
-            linkerArgsBuilder.Append("/LIBPATH:\"" + libPath +"\" ");
+            linkerArgsBuilder.Append("/LIBPATH:\"" + libPath + "\" ");
             // Add LIBPATH entry for um SDK libs (uuid.lib, etc)
             linkerArgsBuilder.Append("/LIBPATH:\"" + SdkRoot + @"Lib\" + SdkVersionString + @"\um\" + ProcessorArchitecture + "\" ");
             // Add LIBPATH entry for ucrt SDK libs (ucrt*.lib, etc)
@@ -664,18 +660,15 @@ namespace Ino
                 linkerArgsBuilder.Append("\"" + file + "\" ");
             }
 
-            string linkerArgs = linkerArgsBuilder.ToString();
+            var linkerArgs = linkerArgsBuilder.ToString();
             ExecuteExternalProcess(LinkerPathFromRegistry, VCToolsWorkingDirectoryFromRegistry, linkerArgs, outputFolder + "\\linker.log");
 
-            String dllFilePath = outputFolder + "\\" + InProcessServerPath;
-            bool success = File.Exists(dllFilePath);
-            return success;
+            var dllFilePath = outputFolder + "\\" + InProcessServerPath;
+            return Task.FromResult(File.Exists(dllFilePath));
         }
 
-        public async Task<bool> BuildAsync(String outputFolder, StreamWriter logging)
+        public Task<bool> BuildAsync(string outputFolder, StreamWriter logging)
         {
-            bool success = false;
-
             // Find the compiler and linker
 
             // To build the INO file, we need:
@@ -683,22 +676,22 @@ namespace Ino
             //   2. Static lib
 
             // Compile INO file to OBJ
-            success = await Compile(outputFolder, logging);
-            if (!success)
+            var compileTask = Compile(outputFolder, logging);
+            if (!compileTask.Result)
             {
-                logging.WriteLine("...compile step failed!");
-                return false;
+                logging.WriteLine(Resource.InoProject_CompileStepFailed);
+                return Task.FromResult(false);
             }
 
             // Link OBJ to DLL
-            success = await Link(outputFolder, logging);
-            if (!success)
+            var linkTask = Link(outputFolder, logging);
+            if (!linkTask.Result)
             {
-                logging.WriteLine("... linking step failed!");
-                return false;
+                logging.WriteLine(Resource.InoProject_LinkStepFailed);
+                return Task.FromResult(false);
             }
 
-            return success;
+            return Task.FromResult(true);
         }
     }
 }

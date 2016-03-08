@@ -1,25 +1,26 @@
-﻿using IotCoreAppProjectExtensibility;
+﻿using Microsoft.Iot.IotCoreAppProjectExtensibility;
 using System;
-using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 
-namespace IotCoreAppDeployment
+namespace Microsoft.Iot.IotCoreAppDeployment
 {
     class SupportedProjects
     {
-        private void DoGetProviders<T>(Type providerType, List<T> providerList)
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Reliability", "CA2001:AvoidCallingProblematicMethods", MessageId = "System.Reflection.Assembly.LoadFile")]
+        private static void DoGetProviders<T>(Type providerType, Collection<T> providerList)
         {
             var assemblyIncludedTypes = AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes()).Where(p => (!p.IsInterface && providerType.IsAssignableFrom(p)));
             foreach (var impl in assemblyIncludedTypes)
             {
                 try
                 {
-                    T provider = (T)impl.GetConstructor(new Type[0]).Invoke(new Object[0]);
+                    var provider = (T)impl.GetConstructor(new Type[0]).Invoke(new object[0]);
                     providerList.Add(provider);
                 }
-                catch (Exception e)
+                catch (Exception e) when (e is ArgumentNullException || e is ArgumentException || e is NullReferenceException)
                 {
                     // TODO: handle error ... for now, skip
                 }
@@ -31,7 +32,7 @@ namespace IotCoreAppDeployment
             {
                 try
                 {
-                    var nextAssembly = Assembly.LoadFrom(file.FullName);
+                    var nextAssembly = Assembly.LoadFile(file.FullName);
                     var typesFromNextAssembly = nextAssembly.GetTypes().Where(p => (!p.IsInterface && providerType.IsAssignableFrom(p)));
                     foreach (var impl in typesFromNextAssembly)
                     {
@@ -40,7 +41,7 @@ namespace IotCoreAppDeployment
                             T provider = (T)impl.GetConstructor(new Type[0]).Invoke(new Object[0]);
                             providerList.Add(provider);
                         }
-                        catch (Exception e)
+                        catch (ArgumentException)
                         {
                             // TODO: handle error ... for now, skip
                         }
@@ -53,29 +54,29 @@ namespace IotCoreAppDeployment
             }
         }
 
-        private List<IProjectProvider> _ProjectProviders;
-        public List<IProjectProvider> ProjectProviders
+        private static Collection<IProjectProvider> _ProjectProviders;
+        public static Collection<IProjectProvider> ProjectProviders
         {
             get
             {
                 if (_ProjectProviders == null)
                 {
                     var providerType = typeof(IProjectProvider);
-                    _ProjectProviders = new List<IProjectProvider>();
+                    _ProjectProviders = new Collection<IProjectProvider>();
                     DoGetProviders(providerType, _ProjectProviders);
                 }
 
                 return _ProjectProviders;
             }
         }
-        private List<IProject> _Projects;
-        public List<IProject> Projects
+        private static Collection<IProject> _Projects;
+        public static Collection<IProject> Projects
         {
             get
             {
                 if (_Projects == null)
                 {
-                    _Projects = new List<IProject>();
+                    _Projects = new Collection<IProject>();
                     foreach (var provider in ProjectProviders)
                     {
                         var projects = provider.GetSupportedProjects();
@@ -89,7 +90,7 @@ namespace IotCoreAppDeployment
             }
         }
 
-        public IProject FindProject(String source)
+        public static IProject FindProject(string source)
         {
             foreach (var project in Projects)
             {
@@ -103,29 +104,29 @@ namespace IotCoreAppDeployment
 
 
 
-        private List<ITemplateProvider> _TemplateProviders;
-        public List<ITemplateProvider> TemplateProviders
+        private static Collection<ITemplateProvider> _TemplateProviders;
+        public static Collection<ITemplateProvider> TemplateProviders
         {
             get
             {
                 if (_TemplateProviders == null)
                 {
                     var providerType = typeof(ITemplateProvider);
-                    _TemplateProviders = new List<ITemplateProvider>();
+                    _TemplateProviders = new Collection<ITemplateProvider>();
                     DoGetProviders(providerType, _TemplateProviders);
                 }
 
                 return _TemplateProviders;
             }
         }
-        private List<ITemplate> _Templates;
-        public List<ITemplate> Templates
+        private static Collection<ITemplate> _Templates;
+        public static Collection<ITemplate> Templates
         {
             get
             {
                 if (_Templates == null)
                 {
-                    _Templates = new List<ITemplate>();
+                    _Templates = new Collection<ITemplate>();
                     foreach (var provider in TemplateProviders)
                     {
                         var templates = provider.GetSupportedTemplates();
@@ -139,7 +140,7 @@ namespace IotCoreAppDeployment
             }
         }
 
-        public ITemplate FindTemplate(IBaseProjectTypes type)
+        public static ITemplate FindTemplate(IBaseProjectTypes type)
         {
             foreach (var template in Templates)
             {
@@ -151,15 +152,15 @@ namespace IotCoreAppDeployment
             return null;
         }
 
-        private List<IDependencyProvider> _DependencyProviders;
-        public List<IDependencyProvider> DependencyProviders
+        private static Collection<IDependencyProvider> _DependencyProviders;
+        public static Collection<IDependencyProvider> DependencyProviders
         {
             get
             {
                 if (_DependencyProviders == null)
                 {
                     var providerType = typeof(IDependencyProvider);
-                    _DependencyProviders = new List<IDependencyProvider>();
+                    _DependencyProviders = new Collection<IDependencyProvider>();
                     DoGetProviders(providerType, _DependencyProviders);
                 }
 

@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
-namespace IotCoreAppProjectExtensibility
+namespace Microsoft.Iot.IotCoreAppProjectExtensibility
 {
     public interface IDependencyProvider
     {
-        Dictionary<String, IDependency> GetSupportedDependencies();
+        Dictionary<string, IDependency> GetSupportedDependencies();
     }
 }

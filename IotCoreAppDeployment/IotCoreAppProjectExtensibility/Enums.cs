@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace IotCoreAppProjectExtensibility
+namespace Microsoft.Iot.IotCoreAppProjectExtensibility
 {
     public enum TargetPlatform
     {

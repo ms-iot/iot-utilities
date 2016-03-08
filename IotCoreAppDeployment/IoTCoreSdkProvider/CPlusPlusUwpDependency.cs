@@ -1,21 +1,16 @@
-﻿using IotCoreAppProjectExtensibility;
-using System;
+﻿using Microsoft.Iot.IotCoreAppProjectExtensibility;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Reflection;
 
-namespace IoTCoreSdkProvider
+namespace Microsoft.Iot.IoTCoreSdkProvider
 {
     public class CPlusPlusUwpDependency : IDependency
     {
-        public string Name
-        {
-            get
-            {
-                return "CPlusPlusUwp";
-            }
-        }
+        public string Name => "CPlusPlusUwp";
 
-        FileStreamInfo VCLibsFromResources(TargetPlatform platform, DependencyConfiguration configuration, SdkVersion sdkVersion)
+        private static FileStreamInfo VCLibsFromResources(TargetPlatform platform, DependencyConfiguration configuration, SdkVersion sdkVersion)
         {
             var vclibVersion = "";
             switch (sdkVersion)
@@ -34,9 +29,9 @@ namespace IoTCoreSdkProvider
                     return null;
             }
 
-            var names = Assembly.GetExecutingAssembly().GetManifestResourceNames();
-            var appxFilename = String.Format("Microsoft.VCLibs.{0}.{1}.{2}.appx", platformString, configuration.ToString(), vclibVersion);
-            var convertedPath = @"IoTCoreSdkProvider.Resources.VCLibs." + platformString + "." + appxFilename; 
+            var appxFilename = string.Format(CultureInfo.InvariantCulture, "Microsoft.VCLibs.{0}.{1}.{2}.appx", platformString, configuration.ToString(), vclibVersion);
+            var assemblyName = typeof(CPlusPlusUwpDependency).Assembly.GetName().Name;
+            var convertedPath = assemblyName + @".Resources.VCLibs." + platformString + "." + appxFilename;
             return new FileStreamInfo()
             {
                 AppxRelativePath = appxFilename,
@@ -44,7 +39,7 @@ namespace IoTCoreSdkProvider
             };
         }
 
-        public List<FileStreamInfo> GetDependencies(TargetPlatform platform, DependencyConfiguration configuration, SdkVersion sdkVersion)
+        public ReadOnlyCollection<FileStreamInfo> GetDependencies(TargetPlatform platform, DependencyConfiguration configuration, SdkVersion sdkVersion)
         {
             var dependencies = new List<FileStreamInfo>();
             var dependency = VCLibsFromResources(platform, configuration, sdkVersion);
@@ -52,7 +47,7 @@ namespace IoTCoreSdkProvider
             {
                 dependencies.Add(dependency);
             }
-            return dependencies;
+            return new ReadOnlyCollection<FileStreamInfo>(dependencies);
         }
     }
 }

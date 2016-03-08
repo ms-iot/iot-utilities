@@ -1,15 +1,15 @@
-﻿using IotCoreAppProjectExtensibility;
+﻿using Microsoft.Iot.IotCoreAppProjectExtensibility;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
-namespace Ino
+namespace Microsoft.Iot.Ino
 {
     public class InoProjectProvider : IProjectProvider
     {
-        public List<IProject> GetSupportedProjects()
+        public ReadOnlyCollection<IProject> GetSupportedProjects()
         {
-            var supportedProjects = new List<IProject>();
-            supportedProjects.Add(new InoProject());
-            return supportedProjects;
+            var supportedProjects = new List<IProject>() { new InoProject() };
+            return new ReadOnlyCollection<IProject>(supportedProjects);
         }
     }
 }

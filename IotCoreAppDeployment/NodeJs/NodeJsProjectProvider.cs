@@ -1,15 +1,15 @@
-﻿using IotCoreAppProjectExtensibility;
+﻿using Microsoft.Iot.IotCoreAppProjectExtensibility;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
-namespace NodeJs
+namespace Microsoft.Iot.NodeJs
 {
     public class NodeJsProjectProvider : IProjectProvider
     {
-        public List<IProject> GetSupportedProjects()
+        public ReadOnlyCollection<IProject> GetSupportedProjects()
         {
-            var supportedProjects = new List<IProject>();
-            supportedProjects.Add(new NodeJsProject());
-            return supportedProjects;
+            var supportedProjects = new List<IProject>() { new NodeJsProject() };
+            return new ReadOnlyCollection<IProject>(supportedProjects);
         }
     }
 }

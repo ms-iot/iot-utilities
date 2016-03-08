@@ -1,4 +1,4 @@
-﻿namespace IotCoreAppProjectExtensibility
+﻿namespace Microsoft.Iot.IotCoreAppProjectExtensibility
 {
     public enum IBaseProjectTypes
     {

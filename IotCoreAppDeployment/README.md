@@ -12,20 +12,25 @@ of arguments that the tool accepts.
 ```
   IotCoreAppDeployment.exe -s (source) -n (target):
 
-    -s (required)    Specify source input
-    -n (required)    Speficy IoT Core device name or IP address
+   Required arguments requiring input: -arg value
+     -n                  Speficy IoT Core device name or IP address
+     -s                  Specify source input
 
-    -a               Specify the target architecture [ARM|X86] ... ARM is the default
-    -d               If this is specified, the temp folder will not be deleted (this is useful for diagnosing problems).
-    -f               Specify the configuration [Debug|Release] ... Debug is the default
-    -g               Specify SignTool.exe full path ... if this is not provided, the registry is queried
-    -k               Specify SDK version ... 10.0.10586.0 is the default
-    -o               Specify full local path to output APPX to ... if this is not provided, files will not be saved
-    -p               Specify target user password) ... p@ssw0rd is the default
-    -t               Specify the temp working directory ... if nothing is specified a folder in the %temp% will be used
-    -u               Specify target username ... Administrator is the default
-    -w               Specify PowerShell.exe full path ... if this is not provided, the registry is queried
-    -x               Specify MakeAppx.exe full path ... if this is not provided, the registry is queried
+   Optional arguments requiring input: -arg value
+     -a                  Specify the target architecture [ARM|X86] ... ARM is default
+     -f                  Specify the configuration [Debug|Release] ... Debug is default
+     -g                  Specify SignTool.exe full path ... if not provided, registry is queried
+     -o                  Specify local path to save APPX in ... if not provided, files will not be saved
+     -p                  Specify target user password) ... p@ssw0rd is default
+     -t                  Specify the temp working directory ... if not specified, %temp% will be used
+     -w                  Specify target username ... Administrator is default
+     -w                  Specify PowerShell.exe full path ... if not provided, registry is queried
+     -x                  Specify SDK version ... 10.0.10586.0 is default
+     -x                  Specify MakeAppx.exe full path ... if not provided, registry is queried
+
+   Optional arguments requiring no input: -arg
+     -d                  If this is specified, the temp folder will not be deleted
+     -h|-help|-?         Display usage message
 ```
 ### Node.js
 
@@ -89,7 +94,9 @@ specify `-a x86`):
 
 The intent of the **IotCoreAppDeployment** utility is that it be extensible.  To add a new 
 project type, a new DLL should be added to the installation directory that implements
-`IotCoreAppProjectExtensibility.IProjectProvider` and `IotCoreAppProjectExtensibility.IProject`.
+`IotCoreAppProjectExtensibility.IProjectProvider` and `IotCoreAppProjectExtensibility.IProject`
+(or `IotCoreAppProjectExtensibility.IProjectWithCustomBuild`).  These extensibility 
+interfaces can be used by linking to Microsoft.Iot.IotCoreApProjectExtensibility.dll.
 
 **IotCoreAppDeployment** follows this basic pattern:
 
@@ -100,7 +107,7 @@ project type, a new DLL should be added to the installation directory that imple
    deployed.
 3. Call `IProject.GetAppxContentChanges` to specify the changes required to specialize
    any files.
-4. Call `IProject.BuildAsync` if any building or linking or generation is required.
+4. Call `IProjectWithCustomBuild.BuildAsync` if any building or linking or generation is required.
 5. Call `IProject.GetCapabilities` to specify the Capabilities that this project will require.
 6. Call `IProject.GetAppxMapContents` to specify the required layout of the deployment.
 7. Call `IProject.GetDependencies` to specify the required framework dependencies.  Currently,
@@ -109,7 +116,7 @@ project type, a new DLL should be added to the installation directory that imple
 The Node.js and Python IProject implementations offer a fairly simple example of creating
 a new project type.
 
-The INO (Arduino Wiring) IProject implementation offers a more complex example that involves
+The INO (Arduino Wiring) IProjectWithCustomBuild implementation offers a more complex example that involves
 building and linking.
 
 

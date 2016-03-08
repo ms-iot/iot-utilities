@@ -1,30 +1,31 @@
-﻿using IotCoreAppProjectExtensibility;
-using System;
+﻿using Microsoft.Iot.IotCoreAppProjectExtensibility;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Reflection;
 
-namespace IotCoreTemplateProvider
+namespace Microsoft.Iot.IotCoreTemplateProvider
 {
     public class CppBackgroundApplicationTemplate : ITemplate
     {
-        public String Name { get { return "C++ Background Application"; } }
+        public string Name => "C++ Background Application";
 
         public IBaseProjectTypes GetBaseProjectType()
         {
             return IBaseProjectTypes.CPlusPlusBackgroundApplication;
         }
 
-        FileStreamInfo TemplateFileFromResources(String fileName)
+        private static FileStreamInfo TemplateFileFromResources(string fileName)
         {
-            var names = Assembly.GetExecutingAssembly().GetManifestResourceNames();
-            var convertedPath = @"IotCoreTemplateProvider.Resources.CppBackgroundApplicationTemplate." + fileName.Replace('\\', '.');
-            return new FileStreamInfo() {
+            var assemblyName = typeof(CppBackgroundApplicationTemplate).Assembly.GetName().Name;
+            var convertedPath = assemblyName + @".Resources.CppBackgroundApplicationTemplate." + fileName.Replace('\\', '.');
+            return new FileStreamInfo()
+            {
                 AppxRelativePath = fileName,
                 Stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(convertedPath)
             };
         }
 
-        public bool GetAppxMapContents(List<String> resourceMetadata, List<String> files, String outputFolder)
+        public bool GetAppxMapContents(Collection<string> resourceMetadata, Collection<string> files, string outputFolder)
         {
             resourceMetadata.Add("\"ResourceDimensions\"		\"scale-200\"");
             resourceMetadata.Add("\"ResourceDimensions\"        \"language-en-us\"");
@@ -40,20 +41,22 @@ namespace IotCoreTemplateProvider
             return true;
         }
 
-        public List<FileStreamInfo> GetTemplateContents()
+        public ReadOnlyCollection<FileStreamInfo> GetTemplateContents()
         {
-            var contents = new List<FileStreamInfo>();
-            contents.Add(TemplateFileFromResources(@"AppxManifest.xml"));
-            contents.Add(TemplateFileFromResources(@"resources.pri"));
-            contents.Add(TemplateFileFromResources(@"TemporaryKey.pfx"));
-            contents.Add(TemplateFileFromResources(@"Assets\LockScreenLogo.scale-200.png"));
-            contents.Add(TemplateFileFromResources(@"Assets\SplashScreen.scale-200.png"));
-            contents.Add(TemplateFileFromResources(@"Assets\Square44x44Logo.scale-200.png"));
-            contents.Add(TemplateFileFromResources(@"Assets\Square44x44Logo.targetsize-24_altform-unplated.png"));
-            contents.Add(TemplateFileFromResources(@"Assets\Square150x150Logo.scale-200.png"));
-            contents.Add(TemplateFileFromResources(@"Assets\StoreLogo.png"));
-            contents.Add(TemplateFileFromResources(@"Assets\Wide310x150Logo.scale-200.png"));
-            return contents;
+            var contents = new List<FileStreamInfo>()
+                    {
+                        TemplateFileFromResources(@"AppxManifest.xml"),
+                        TemplateFileFromResources(@"resources.pri"),
+                        TemplateFileFromResources(@"TemporaryKey.pfx"),
+                        TemplateFileFromResources(@"Assets\LockScreenLogo.scale-200.png"),
+                        TemplateFileFromResources(@"Assets\SplashScreen.scale-200.png"),
+                        TemplateFileFromResources(@"Assets\Square44x44Logo.scale-200.png"),
+                        TemplateFileFromResources(@"Assets\Square44x44Logo.targetsize-24_altform-unplated.png"),
+                        TemplateFileFromResources(@"Assets\Square150x150Logo.scale-200.png"),
+                        TemplateFileFromResources(@"Assets\StoreLogo.png"),
+                        TemplateFileFromResources(@"Assets\Wide310x150Logo.scale-200.png"),
+                    };
+            return new ReadOnlyCollection<FileStreamInfo>(contents);
         }
     }
 }

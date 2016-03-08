@@ -1,12 +1,15 @@
-﻿namespace IotCoreAppDeployment
+﻿namespace Microsoft.Iot.IotCoreAppDeployment
 {
-    class Program
+    public static class Program
     {
-        static void Main(string[] args)
+        public static int Main(string[] args)
         {
-            var stream = System.Console.OpenStandardOutput();
-            var task = DeploymentWorker.Execute(args, stream);
-            bool result = task.Result;
+            using (var stream = System.Console.OpenStandardOutput())
+            {
+                var task = DeploymentWorker.Execute(args, stream);
+                var retval = (task.Result) ? 0 : 1;
+                return retval;
+            }
         }
     }
 }

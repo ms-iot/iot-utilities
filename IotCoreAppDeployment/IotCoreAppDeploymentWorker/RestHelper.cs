@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Runtime.Serialization;
@@ -11,7 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Net.Http;
 
-namespace IotCoreAppDeployment
+namespace Microsoft.Iot.IotCoreAppDeployment
 {
     public class RestHelper
     {
@@ -48,7 +49,7 @@ namespace IotCoreAppDeployment
 
         public Uri CreateUri(string restPath)
         {
-            return new Uri(string.Format(UrlFormat, this.IpAddress.ToString(), restPath), UriKind.Absolute);
+            return new Uri(string.Format(CultureInfo.InvariantCulture, UrlFormat, this.IpAddress.ToString(), restPath), UriKind.Absolute);
         }
 
         public Uri CreateUri(string restPath, Dictionary<string, string> arguments)
@@ -68,7 +69,7 @@ namespace IotCoreAppDeployment
                 argumentString.Append(cur.Value);
             }
 
-            return new Uri(string.Format(UrlFormat, this.IpAddress.ToString(), restPath) + "?" + argumentString.ToString(), UriKind.Absolute);
+            return new Uri(string.Format(CultureInfo.InvariantCulture, UrlFormat, this.IpAddress.ToString(), restPath) + "?" + argumentString.ToString(), UriKind.Absolute);
         }
 
         private void ConfigureRequest(HttpWebRequest request)
@@ -106,7 +107,7 @@ namespace IotCoreAppDeployment
                 {
                     Debug.WriteLine("--->Adding file ({0}) to request.", file.FullName);
                     var headerContentType = (file.Extension == ".cer") ? "application/x-x509-ca-cert" : "application/x-zip-compressed";
-                    var header = String.Format(headerTemplate, file.Name, file.Name, headerContentType);
+                    var header = string.Format(headerTemplate, file.Name, file.Name, headerContentType);
                     var headerBytes = Encoding.UTF8.GetBytes(header);
                     await memStream.WriteAsync(headerBytes, 0, headerBytes.Length);
 
