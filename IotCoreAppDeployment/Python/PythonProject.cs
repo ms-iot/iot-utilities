@@ -190,10 +190,5 @@ namespace Microsoft.Iot.Python
             }
             return new ReadOnlyCollection<FileStreamInfo>(new List<FileStreamInfo>());
         }
-
-        public Task<bool> BuildAsync(string outputFolder, StreamWriter logging)
-        {
-            return Task.FromResult(true);
-        }
     }
 }

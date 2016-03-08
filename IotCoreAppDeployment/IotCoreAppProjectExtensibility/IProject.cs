@@ -24,6 +24,10 @@ namespace Microsoft.Iot.IotCoreAppProjectExtensibility
         bool GetAppxMapContents(Collection<string> resourceMetadata, Collection<string> files, string outputFolder);
         ReadOnlyCollection<FileStreamInfo> GetAppxContents();
         ReadOnlyCollection<FileStreamInfo> GetDependencies(Collection<IDependencyProvider> availableDependencyProviders);
+    }
+
+    public interface IProjectWithCustomBuild : IProject
+    {
         Task<bool> BuildAsync(string outputFolder, StreamWriter logging);
     }
 }

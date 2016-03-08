@@ -235,7 +235,7 @@ namespace Microsoft.Iot.IotCoreAppDeployment
             return true;
         }
 
-        private Task<bool> BuildProjectAsync(IProject project)
+        private Task<bool> BuildProjectAsync(IProjectWithCustomBuild project)
         {
             OutputMessage(Resource.DeploymentWorker_BuildStarted);
             var buildTask = project.BuildAsync(outputFolder, outputWriter);
@@ -476,8 +476,9 @@ namespace Microsoft.Iot.IotCoreAppDeployment
                 return Task.FromResult(false);
             }
 
+            var projectWithCustomBuild = project as IProjectWithCustomBuild;
             // Do build step if needed (compiling/generation/etc)
-            if (!BuildProjectAsync(project).Result)
+            if (projectWithCustomBuild != null && !BuildProjectAsync(projectWithCustomBuild).Result)
             {
                 return Task.FromResult(false);
             }

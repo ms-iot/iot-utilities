@@ -14,7 +14,7 @@ using System.Globalization;
 
 namespace Microsoft.Iot.Ino
 {
-    public class InoProject : IProject
+    public class InoProject : IProjectWithCustomBuild
     {
         public string Name => "Arduino Wiring Project";
         public string IdentityName => "ino-uwp";
