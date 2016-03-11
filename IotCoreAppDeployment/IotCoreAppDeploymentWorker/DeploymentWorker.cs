@@ -421,38 +421,40 @@ namespace Microsoft.Iot.IotCoreAppDeployment
 
             // Call WEBB Rest APIs to deploy
             var packageFullName = string.Format(CultureInfo.InvariantCulture, packageFullNameFormat, identityName, targetType.ToString());
-            var webbHelper = new WebbHelper();
-            OutputMessage(Resource.DeploymentWorker_DeployAppx_starting_to_deploy_certificate_APPX_and_dependencies);
-            // Attempt to uninstall existing package if found
-            var uninstallTask = webbHelper.UninstallAppAsync(packageFullName, targetName, credentials);
-            if (uninstallTask.Result == HttpStatusCode.OK)
+            using (var webbHelper = new WebbHelper())
             {
-                // result == OK means the package was uninstalled.
-                OutputMessage(string.Format(CultureInfo.InvariantCulture, Resource.DeploymentWorker_PreviousDeployUninstalled, packageFullName));
-            }
-            else
-            {
-                // result != OK could mean that the package wasn't already installed
-                //           or it could mean that there was a problem with the uninstall
-                //           request.
-                OutputMessage(string.Format(CultureInfo.InvariantCulture, Resource.DeploymentWorker_PreviousDeployNotUninstalled, packageFullName));
-            }
-            // Deploy new APPX, cert, and dependency files
-            var deployTask = webbHelper.DeployAppAsync(files, targetName, credentials);
-            if (deployTask.Result == HttpStatusCode.Accepted)
-            {
-                var result = webbHelper.PollInstallStateAsync(targetName, credentials).Result;
-                OutputMessage(string.Format(CultureInfo.InvariantCulture, Resource.DeploymentWorker_DeployFinished, packageFullName));
+                OutputMessage(Resource.DeploymentWorker_DeployAppx_starting_to_deploy_certificate_APPX_and_dependencies);
+                // Attempt to uninstall existing package if found
+                var uninstallTask = webbHelper.UninstallAppAsync(packageFullName, targetName, credentials);
+                if (uninstallTask.Result == HttpStatusCode.OK)
+                {
+                    // result == OK means the package was uninstalled.
+                    OutputMessage(string.Format(CultureInfo.InvariantCulture, Resource.DeploymentWorker_PreviousDeployUninstalled, packageFullName));
+                }
+                else
+                {
+                    // result != OK could mean that the package wasn't already installed
+                    //           or it could mean that there was a problem with the uninstall
+                    //           request.
+                    OutputMessage(string.Format(CultureInfo.InvariantCulture, Resource.DeploymentWorker_PreviousDeployNotUninstalled, packageFullName));
+                }
+                // Deploy new APPX, cert, and dependency files
+                var deployTask = webbHelper.DeployAppAsync(files, targetName, credentials);
+                if (deployTask.Result == HttpStatusCode.Accepted)
+                {
+                    var result = webbHelper.PollInstallStateAsync(targetName, credentials).Result;
+                    OutputMessage(string.Format(CultureInfo.InvariantCulture, Resource.DeploymentWorker_DeployFinished, packageFullName));
 
-                OutputMessage("\r\n\r\n***");
-                OutputMessage(string.Format(CultureInfo.InvariantCulture, "*** PackageFullName = {0}", packageFullName));
-                OutputMessage("***\r\n\r\n");
-                return Task.FromResult(result);
-            }
-            else
-            {
-                OutputMessage(string.Format(CultureInfo.InvariantCulture, Resource.DeploymentWorker_DeployFailed, packageFullName));
-                return Task.FromResult(false);
+                    OutputMessage("\r\n\r\n***");
+                    OutputMessage(string.Format(CultureInfo.InvariantCulture, "*** PackageFullName = {0}", packageFullName));
+                    OutputMessage("***\r\n\r\n");
+                    return Task.FromResult(result);
+                }
+                else
+                {
+                    OutputMessage(string.Format(CultureInfo.InvariantCulture, Resource.DeploymentWorker_DeployFailed, packageFullName));
+                    return Task.FromResult(false);
+                }
             }
         }
 

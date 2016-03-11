@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Iot.IotCoreAppDeployment
 {
-    class WebbHelper
+    class WebbHelper : IDisposable
     {
         private const int QueryInterval = 3000;
 
@@ -187,6 +187,15 @@ namespace Microsoft.Iot.IotCoreAppDeployment
             }
 
             return false;
+        }
+
+        public void Dispose()
+        {
+            if (_tokenSource != null)
+            {
+                _tokenSource.Dispose();
+                _tokenSource = null;
+            }
         }
     }
 }
