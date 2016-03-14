@@ -1,0 +1,2 @@
+w10.name=Windows 10
+w10.program.tool=icad
