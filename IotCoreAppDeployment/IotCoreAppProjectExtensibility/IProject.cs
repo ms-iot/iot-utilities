@@ -1,4 +1,6 @@
-﻿using System.Collections.ObjectModel;
+// Copyright (c) Microsoft. All rights reserved.
+
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Threading.Tasks;
 
