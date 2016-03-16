@@ -1,4 +1,6 @@
-﻿using System.IO;
+// Copyright (c) Microsoft. All rights reserved.
+
+using System.IO;
 
 namespace Microsoft.Iot.IotCoreAppProjectExtensibility
 {

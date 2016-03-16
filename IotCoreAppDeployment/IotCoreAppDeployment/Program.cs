@@ -1,4 +1,6 @@
-﻿namespace Microsoft.Iot.IotCoreAppDeployment
+// Copyright (c) Microsoft. All rights reserved.
+
+namespace Microsoft.Iot.IotCoreAppDeployment
 {
     public static class Program
     {

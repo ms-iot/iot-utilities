@@ -1,4 +1,6 @@
-﻿using System.Security.Cryptography;
+// Copyright (c) Microsoft. All rights reserved.
+
+using System.Security.Cryptography;
 
 namespace Microsoft.Iot.IotCoreAppDeployment
 {

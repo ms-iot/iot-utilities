@@ -1,4 +1,6 @@
-﻿using Microsoft.Iot.IotCoreAppProjectExtensibility;
+// Copyright (c) Microsoft. All rights reserved.
+
+using Microsoft.Iot.IotCoreAppProjectExtensibility;
 using System.Collections.Generic;
 
 namespace Microsoft.Iot.IoTCoreSdkProvider

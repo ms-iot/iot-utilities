@@ -1,4 +1,6 @@
-﻿using Microsoft.Iot.IotCoreAppProjectExtensibility;
+// Copyright (c) Microsoft. All rights reserved.
+
+using Microsoft.Iot.IotCoreAppProjectExtensibility;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;

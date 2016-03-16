@@ -1,4 +1,6 @@
-﻿using System.Runtime.Serialization;
+// Copyright (c) Microsoft. All rights reserved.
+
+using System.Runtime.Serialization;
 
 namespace Microsoft.Iot.IotCoreAppDeployment
 {

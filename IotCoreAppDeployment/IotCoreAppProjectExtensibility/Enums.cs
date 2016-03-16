@@ -1,4 +1,6 @@
-﻿using System.ComponentModel;
+// Copyright (c) Microsoft. All rights reserved.
+
+using System.ComponentModel;
 
 namespace Microsoft.Iot.IotCoreAppProjectExtensibility
 {
