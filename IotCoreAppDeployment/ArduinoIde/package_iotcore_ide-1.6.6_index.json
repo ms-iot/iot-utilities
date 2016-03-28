@@ -3,7 +3,7 @@
     {
       "name": "Microsoft",
       "maintainer": "Microsoft.IoT",
-      "websiteURL": "https://github.com/bfjelds/iot-utilities-1/tree/master/IotCoreAppDeployment/ArduinoIde/",
+      "websiteURL": "https://github.com/ms-iot/iot-utilities-1/tree/master/IotCoreAppDeployment/ArduinoIde/",
       "email": "bfjelds@microsoft.com",
       "help": {
         "online": "http://ms-iot.github.io/content/en-US/win10/IotCoreAppDeployment_ArduinoIde.htm"
@@ -17,7 +17,7 @@
           "help": {
             "online": "http://ms-iot.github.io/content/en-US/win10/IotCoreAppDeployment_ArduinoIde.htm"
           },
-          "url": "https://github.com/bfjelds/iot-utilities-1/raw/master/IotCoreAppDeployment/ArduinoIde/release/win10_iotcore-1.0.0_ide-1.6.6.zip",
+          "url": "https://github.com/ms-iot/iot-utilities-1/raw/master/IotCoreAppDeployment/ArduinoIde/release/win10_iotcore-1.0.0_ide-1.6.6.zip",
           "archiveFileName": "win10_iotcore-1.0.0_ide-1.6.6.zip",
           "checksum": "SHA-256:ed1b42b396217e242cd3a5b597ad5dad5957cb8117dd0f972376bafab7d8a0e5",
           "size": "47325480",
