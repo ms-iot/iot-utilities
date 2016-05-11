@@ -20,6 +20,8 @@ namespace Microsoft.Iot.IotCoreAppDeployment
 {
     public class DeploymentWorker
     {
+        private static Microsoft.ApplicationInsights.TelemetryClient TelemetryClient;
+
         private CommandLineParser argsHandler = null;
         private string outputFolder = null;
         private string source = "";
@@ -406,7 +408,36 @@ namespace Microsoft.Iot.IotCoreAppDeployment
             return true;
         }
 
-        private Task<bool> DeployAppx(string outputAppx, string outputCer, ReadOnlyCollection<FileStreamInfo> dependencies, string dependencyFolder, string identityName)
+        private Task<bool> HandleUnauthenticatedDeployAppx(string outputAppx, string outputCer, ReadOnlyCollection<FileStreamInfo> dependencies, string dependencyFolder, string identityName)
+        {
+            var deployTask = DeployAppx(outputAppx, outputCer, dependencies, dependencyFolder, identityName);
+            if (deployTask.Result == HttpStatusCode.Unauthorized)
+            {
+                OutputMessage(string.Format(CultureInfo.InvariantCulture, Resource.DeploymentWorker_UnauthorizedDeployment, credentials.UserName, credentials.Password));
+
+                CustomCredentialsForm customCredentialsForm = new CustomCredentialsForm(credentials.UserName, credentials.Password);
+                var result = customCredentialsForm.ShowDialog();
+                if (result == System.Windows.Forms.DialogResult.OK)
+                {
+                    credentials.UserName = customCredentialsForm.Username;
+                    credentials.Password = customCredentialsForm.Password;
+                }
+                else
+                {
+                    return Task.FromResult(false);
+                }
+
+                deployTask = DeployAppx(outputAppx, outputCer, dependencies, dependencyFolder, identityName);
+                if (deployTask.Result == HttpStatusCode.Unauthorized)
+                {
+                    OutputMessage(string.Format(CultureInfo.InvariantCulture, Resource.DeploymentWorker_UnauthorizedDeployment, credentials.UserName, credentials.Password));
+                }
+            }
+
+            return Task.FromResult(deployTask.Result == HttpStatusCode.OK);
+        }
+
+        private Task<HttpStatusCode> DeployAppx(string outputAppx, string outputCer, ReadOnlyCollection<FileStreamInfo> dependencies, string dependencyFolder, string identityName)
         {
             OutputMessage(string.Format(CultureInfo.InvariantCulture, Resource.DeploymentWorker_StartDeploy, targetName));
 
@@ -433,6 +464,11 @@ namespace Microsoft.Iot.IotCoreAppDeployment
                     // result == OK means the package was uninstalled.
                     OutputMessage(string.Format(CultureInfo.InvariantCulture, Resource.DeploymentWorker_PreviousDeployUninstalled, packageFullName));
                 }
+                else if (uninstallTask.Result == HttpStatusCode.Unauthorized)
+                {
+                    // result == Unauthorized means the credentials were not accepted.
+                    return Task.FromResult(uninstallTask.Result);
+                }
                 else
                 {
                     // result != OK could mean that the package wasn't already installed
@@ -450,13 +486,17 @@ namespace Microsoft.Iot.IotCoreAppDeployment
                     OutputMessage("\r\n\r\n***");
                     OutputMessage(string.Format(CultureInfo.InvariantCulture, "*** PackageFullName = {0}", packageFullName));
                     OutputMessage("***\r\n\r\n");
-                    return Task.FromResult(result);
+
+                    if (!result)
+                    {
+                        return Task.FromResult(HttpStatusCode.BadRequest);
+                    }
                 }
                 else
                 {
                     OutputMessage(string.Format(CultureInfo.InvariantCulture, Resource.DeploymentWorker_DeployFailed, packageFullName));
-                    return Task.FromResult(false);
                 }
+                return Task.FromResult(deployTask.Result);
             }
         }
 
@@ -505,21 +545,49 @@ namespace Microsoft.Iot.IotCoreAppDeployment
             return Task.FromResult(makeAppxResult);
         }
 
-        private Task<bool> CreateAndDeployApp()
+        private bool GuardTargetName()
         {
-            #region Find Template and Project from available providers
-
-            // Is targetName set correctly?
             if (string.IsNullOrEmpty(targetName) || targetName.Equals("?"))
             {
-                targetName = Microsoft.VisualBasic.Interaction.InputBox(
-                    Resource.DeploymentWorker_GetTargetFromUser,
-                    Resource.DeploymentWorker_GetTargetFromUserTitle);
+                if (targetName.Equals("?"))
+                {
+                    TelemetryClient.TrackEvent("DeployFromArduinoIde", new Dictionary<string, string>());
+                }
+
+                // Use last successful deployment target as default
+                string initialTargetValue = "";
+                using (var key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\IotCoreAppDeployment"))
+                {
+                    if (key != null)
+                    {
+                        initialTargetValue = key.GetValue("Target") as string;
+                    }
+                }
+
+                // Let user specify target
+                TargetNameForm targetNameForm = new TargetNameForm(initialTargetValue);
+                var result = targetNameForm.ShowDialog();
+                if (result == System.Windows.Forms.DialogResult.OK)
+                {
+                    targetName = targetNameForm.TargetName;
+                }
+
                 if (string.IsNullOrEmpty(targetName))
                 {
                     Console.Write(Resource.DeploymentWorker_TargetMissing);
-                    return Task.FromResult(false);
+                    return false;
                 }
+            }
+
+            return true;
+        }
+
+        private bool ConvertTargetNameToIp()
+        {
+            // Is targetName set correctly?
+            if (!GuardTargetName())
+            {
+                return false;
             }
 
             try
@@ -543,8 +611,21 @@ namespace Microsoft.Iot.IotCoreAppDeployment
                 catch (Exception e) when (e is ArgumentNullException || e is ArgumentOutOfRangeException || e is SocketException || e is ArgumentException)
                 {
                     Console.Write(string.Format(CultureInfo.InvariantCulture, Resource.DeploymentWorker_DeviceNotFound, targetName, e.Message));
-                    return Task.FromResult(false);
+                    return false;
                 }
+            }
+
+            return true;
+        }
+
+        private Task<bool> CreateAndDeployApp()
+        {
+            #region Find Template and Project from available providers
+
+            // Ensure that the target name is converted to IP address as needed
+            if (!ConvertTargetNameToIp())
+            {
+                return Task.FromResult(false);
             }
 
             // Ensure that the required Tools (MakeAppx and SignTool) can be found
@@ -654,10 +735,16 @@ namespace Microsoft.Iot.IotCoreAppDeployment
                 return Task.FromResult(false);
             }
 
-            var deployTask = DeployAppx(outputAppx, outputCer, dependencies, artifactsFolder, project.IdentityName);
+            var deployTask = HandleUnauthenticatedDeployAppx(outputAppx, outputCer, dependencies, artifactsFolder, project.IdentityName);
             if (!deployTask.Result)
             {
-                return Task.FromResult(false);
+                return deployTask;
+            }
+
+            // If app was successfully deployed, cache target in registry
+            using (var key = Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\IotCoreAppDeployment"))
+            {
+                key.SetValue("Target", targetName);
             }
 
             return Task.FromResult(CopyArtifacts(outputAppx, appxFilename, outputCer, cerFilename, dependencies));
@@ -681,16 +768,76 @@ namespace Microsoft.Iot.IotCoreAppDeployment
             #endregion
         }
 
+        private static string getMachineId()
+        {
+            string id = null;
+            try
+            {
+                // Try querying 64-bit registry for key
+                var localRegKey = RegistryKey.OpenBaseKey(Microsoft.Win32.RegistryHive.LocalMachine, RegistryView.Registry64);
+
+                if (localRegKey != null)
+                {
+                    id = (string)localRegKey.OpenSubKey(@"SOFTWARE\Microsoft\SQMClient").GetValue("MachineId");
+
+                    // If can't find key in 64-bit registry, query 32-bit registry
+                    if (id == null)
+                    {
+                        localRegKey = RegistryKey.OpenBaseKey(Microsoft.Win32.RegistryHive.LocalMachine, RegistryView.Registry32);
+
+                        if (localRegKey != null)
+                        {
+                            id = (string)localRegKey.OpenSubKey(@"SOFTWARE\Microsoft\SQMClient").GetValue("MachineId");
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+
+            if (id != null)
+            {
+                return id.Replace("{", "").Replace("}", "");
+            }
+
+            return null;
+        }
+
         public static Task<bool> Execute(string[] args, Stream outputStream)
         {
+            // Create AppInsights telemetry client to track app usage
+            TelemetryClient = new Microsoft.ApplicationInsights.TelemetryClient();
+            TelemetryClient.Context.User.Id = getMachineId();
+            TelemetryClient.Context.Session.Id = Guid.NewGuid().ToString();
+
+            var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
+            var id = getMachineId();
+            TelemetryClient.TrackEvent("DeployStart", new Dictionary<string, string>()
+            {
+                { "MachineId", id },
+                { "AppVersion", version }
+            });
+
             var worker = new DeploymentWorker(outputStream);
             if (!worker.argsHandler.HandleCommandLineArgs(args))
             {
+                TelemetryClient.TrackEvent("DeployResult", new Dictionary<string, string>()
+                {
+                    { "IncorrectArgs", true.ToString() },
+                    { "Result", false.ToString() }
+                });
                 return Task.FromResult(false);
             }
 
             worker.OutputMessage(Resource.DeploymentWorker_Starting);
             var taskResult = worker.CreateAndDeployApp().Result;
+            TelemetryClient.TrackEvent("DeployResult", new Dictionary<string, string>()
+            {
+                { "Result", taskResult.ToString() }
+            });
+
             return Task.FromResult(taskResult);
         }
     }
