@@ -551,7 +551,10 @@ namespace Microsoft.Iot.IotCoreAppDeployment
             {
                 if (targetName.Equals("?"))
                 {
-                    TelemetryClient.TrackEvent("DeployFromArduinoIde", new Dictionary<string, string>());
+                    TelemetryClient.TrackEvent("DeployFromArduinoIde", new Dictionary<string, string>()
+                    {
+                        { "MachineId", getMachineId() },
+                    });
                 }
 
                 // Use last successful deployment target as default

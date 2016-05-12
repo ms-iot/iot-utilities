@@ -236,6 +236,15 @@ namespace Microsoft.Iot.Ino
         {
             files.Add("\"" + outputFolder + "\\" + PropertiesDisplayName + ".dll\" \"" + PropertiesDisplayName + ".dll\"");
             files.Add("\"" + outputFolder + "\\" + PropertiesDisplayName + ".winmd\" \"" + PropertiesDisplayName + ".winmd\"");
+
+            string versionedCache = IotCoreAppDeploymentCache + @"\" + Assembly.GetAssembly(typeof(InoProject)).GetName().Version;
+            string runtimePath = versionedCache + @"\lightning\runtimes\win10-" + ProcessorArchitecture + @"\native\";
+            files.Add("\"" + runtimePath + "Lightning.dll\" \"Lightning.dll\"");
+            files.Add("\"" + runtimePath + "Microsoft.IoT.Lightning.Providers.dll\" \"Microsoft.IoT.Lightning.Providers.dll\"");
+
+            string winmdPath = versionedCache + @"\lightning\lib\uap10.0\";
+            files.Add("\"" + winmdPath + "Microsoft.IoT.Lightning.Providers.winmd\" \"Microsoft.IoT.Lightning.Providers.winmd\"");
+
             return true;
         }
 
@@ -324,8 +333,8 @@ namespace Microsoft.Iot.Ino
             var compilerArgsBuilder = new StringBuilder();
             compilerArgsBuilder.Append("/c ");
             compilerArgsBuilder.Append("/I\"" + sourceRoot + "\\\\\" ");
-            compilerArgsBuilder.Append("/I\"" + cachedRoot + "\\arduino\\build\\native\\include\\\\\" ");
-            compilerArgsBuilder.Append("/I\"" + cachedRoot + "\\lightning\\build\\native\\include\\\\\" ");
+            compilerArgsBuilder.Append("/I\"" + cachedRoot + "\\lightning\\include\\\\\" ");
+            compilerArgsBuilder.Append("/I\"" + cachedRoot + "\\lightning\\include\\avr\\\\\" ");
             compilerArgsBuilder.Append("/I\"" + VCIncludePath + "\\\\\" ");
             compilerArgsBuilder.Append("/I\"" + SdkRoot + @"Include\" + SdkVersionString + "\\um\\\\\" ");
             compilerArgsBuilder.Append("/I\"" + SdkRoot + @"Include\" + SdkVersionString + "\\shared\\\\\" ");
@@ -364,6 +373,7 @@ namespace Microsoft.Iot.Ino
             compilerArgsBuilder.Append("/TP ");
             compilerArgsBuilder.Append("/FI\"" + sourceRoot + "\\pch.h\" ");
 
+            compilerArgsBuilder.Append("/FU\"" + cachedRoot + "\\lightning\\lib\\uap10.0\\Microsoft.IoT.Lightning.Providers.winmd\" ");
             compilerArgsBuilder.Append("/FU\"" + VCLibPath + "\\STORE\\REFERENCES\\PLATFORM.WINMD\" ");
 
             var winmdReferenceFormat = "/FU\"" + SdkRoot + "REFERENCES\\{0}\\{1}\\{2}\" ";
@@ -522,62 +532,14 @@ namespace Microsoft.Iot.Ino
             {
                 Directory.CreateDirectory(versionedConfigCache);
             }
-            if (!Directory.Exists(versionedCache + "\\arduino"))
-            {
-                // Get arduino sources from resources
-                if (!CopyResourceFileBuildFolderAndUnzip("microsoft.iot.sdkfromarduino.1.1.1.nupkg", versionedCache, "arduino"))
-                {
-                    Debug.WriteLine(string.Format(CultureInfo.InvariantCulture, Resource.InoProject_ArduinoNupkgFailure));
-                    return Task.FromResult(false);
-                }
-            }
             if (!Directory.Exists(versionedCache + "\\lightning"))
             {
                 // Get lightning sources from resources
-                if (!CopyResourceFileBuildFolderAndUnzip("microsoft.iot.lightning.1.0.2-alpha.nupkg", versionedCache, "lightning"))
+                if (!CopyResourceFileBuildFolderAndUnzip("microsoft.iot.lightning.1.1.0-alpha.nupkg", versionedCache, "lightning"))
                 {
                     Debug.WriteLine(string.Format(CultureInfo.InvariantCulture, Resource.InoProject_LightningNupkgFailure));
                     return Task.FromResult(false);
                 }
-            }
-
-            var dependencySourceCodeToBuild = new string[] {
-                        versionedCache + "\\arduino\\build\\native\\source\\IPAddress.cpp",
-                        versionedCache + "\\arduino\\build\\native\\source\\LiquidCrystal.cpp",
-                        versionedCache + "\\arduino\\build\\native\\source\\Print.cpp",
-                        versionedCache + "\\arduino\\build\\native\\source\\Stepper.cpp",
-                        versionedCache + "\\arduino\\build\\native\\source\\Stream.cpp",
-                        versionedCache + "\\arduino\\build\\native\\source\\WString.cpp",
-                        versionedCache + "\\lightning\\build\\native\\source\\arduino.cpp",
-                        versionedCache + "\\lightning\\build\\native\\source\\BoardPins.cpp",
-                        versionedCache + "\\lightning\\build\\native\\source\\BcmI2cController.cpp",
-                        versionedCache + "\\lightning\\build\\native\\source\\BcmSpiController.cpp",
-                        versionedCache + "\\lightning\\build\\native\\source\\BtI2cController.cpp",
-                        versionedCache + "\\lightning\\build\\native\\source\\BtSpiController.cpp",
-                        versionedCache + "\\lightning\\build\\native\\source\\CY8C9540ASupport.cpp",
-                        versionedCache + "\\lightning\\build\\native\\source\\DmapSupport.cpp",
-                        versionedCache + "\\lightning\\build\\native\\source\\DmapErrors.cpp",
-                        versionedCache + "\\lightning\\build\\native\\source\\eeprom.cpp",
-                        versionedCache + "\\lightning\\build\\native\\source\\GpioController.cpp",
-                        versionedCache + "\\lightning\\build\\native\\source\\HardwareSerial.cpp",
-                        versionedCache + "\\lightning\\build\\native\\source\\I2c.cpp",
-                        versionedCache + "\\lightning\\build\\native\\source\\I2cController.cpp",
-                        versionedCache + "\\lightning\\build\\native\\source\\I2cTransaction.cpp",
-                        versionedCache + "\\lightning\\build\\native\\source\\NetworkSerial.cpp",
-                        versionedCache + "\\lightning\\build\\native\\source\\PCA9685Support.cpp",
-                        versionedCache + "\\lightning\\build\\native\\source\\PCAL9535ASupport.cpp",
-                        versionedCache + "\\lightning\\build\\native\\source\\PulseIn.cpp",
-                        versionedCache + "\\lightning\\build\\native\\source\\Servo.cpp",
-                        versionedCache + "\\lightning\\build\\native\\source\\Spi.cpp",
-                        versionedCache + "\\lightning\\build\\native\\source\\SpiController.cpp",
-                        versionedCache + "\\lightning\\build\\native\\source\\QuarkSpiController.cpp",
-                    };
-
-            // Compile the arduino and lightning sources
-            if (!CompileFiles(dependencySourceCodeToBuild, outputFolder, versionedCache, versionedCache + "\\" + buildOutputDir, true))
-            {
-                logging.WriteLine(Resource.InoProject_CompilationFailure);
-                return Task.FromResult(false);
             }
 
             // Compile StartupTask.cpp
@@ -625,6 +587,7 @@ namespace Microsoft.Iot.Ino
             linkerArgsBuilder.Append("/OUT:\"" + outputFolder + "\\" + InProcessServerPath + "\" ");
             linkerArgsBuilder.Append("/INCREMENTAL ");
             linkerArgsBuilder.Append("/NOLOGO ");
+            linkerArgsBuilder.Append("\"" + versionedCache + @"\lightning\lib\win10-" + ProcessorArchitecture + "\\native\\Lightning.lib\" ");
             linkerArgsBuilder.Append("\"" + SdkRoot + @"Lib\" + SdkVersionString + @"\um\" + ProcessorArchitecture + "\\RUNTIMEOBJECT.LIB\" ");
             linkerArgsBuilder.Append("\"" + SdkRoot + @"Lib\" + SdkVersionString + @"\um\" + ProcessorArchitecture + "\\WINDOWSAPP.LIB\" ");
             linkerArgsBuilder.Append("/MANIFEST:NO ");
