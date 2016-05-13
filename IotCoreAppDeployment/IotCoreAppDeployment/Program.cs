@@ -8,8 +8,8 @@ namespace Microsoft.Iot.IotCoreAppDeployment
         {
             using (var stream = System.Console.OpenStandardOutput())
             {
-                var task = DeploymentWorker.Execute(args, stream);
-                var retval = (task.Result) ? 0 : 1;
+                var result = DeploymentWorker.Execute(args, stream);
+                var retval = (result) ? 0 : 1;
                 return retval;
             }
         }
