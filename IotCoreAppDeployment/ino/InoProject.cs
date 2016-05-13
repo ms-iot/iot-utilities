@@ -195,6 +195,21 @@ namespace Microsoft.Iot.Ino
             }
         }
 
+        private static string _InoVersion = null;
+        private static string InoVersion
+        {
+            get
+            {
+                if (_InoVersion == null)
+                {
+                    Assembly assembly = Assembly.GetAssembly(typeof(InoProject));
+                    FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(assembly.Location);
+                    _InoVersion = fileVersionInfo.ProductVersion;
+                }
+                return _InoVersion;
+            }
+        }
+
         public ReadOnlyCollection<IContentChange> GetAppxContentChanges()
         {
             var sdkVersionString = SdkVersionString;
@@ -237,7 +252,7 @@ namespace Microsoft.Iot.Ino
             files.Add("\"" + outputFolder + "\\" + PropertiesDisplayName + ".dll\" \"" + PropertiesDisplayName + ".dll\"");
             files.Add("\"" + outputFolder + "\\" + PropertiesDisplayName + ".winmd\" \"" + PropertiesDisplayName + ".winmd\"");
 
-            string versionedCache = IotCoreAppDeploymentCache + @"\" + Assembly.GetAssembly(typeof(InoProject)).GetName().Version;
+            string versionedCache = IotCoreAppDeploymentCache + @"\" + InoVersion;
             string runtimePath = versionedCache + @"\lightning\runtimes\win10-" + ProcessorArchitecture + @"\native\";
             files.Add("\"" + runtimePath + "Lightning.dll\" \"Lightning.dll\"");
             files.Add("\"" + runtimePath + "Microsoft.IoT.Lightning.Providers.dll\" \"Microsoft.IoT.Lightning.Providers.dll\"");
@@ -522,8 +537,8 @@ namespace Microsoft.Iot.Ino
                 return Task.FromResult(false);
             }
 
-            string versionedCache = IotCoreAppDeploymentCache + "\\" + Assembly.GetAssembly(typeof(InoProject)).GetName().Version;
-            string versionedConfigCache = versionedCache + "\\" + buildOutputDir;
+            string versionedCache = IotCoreAppDeploymentCache + @"\" + InoVersion;
+            string versionedConfigCache = versionedCache + @"\" + buildOutputDir;
             if (!Directory.Exists(versionedCache))
             {
                 Directory.CreateDirectory(versionedCache);
@@ -579,7 +594,7 @@ namespace Microsoft.Iot.Ino
                 return Task.FromResult(false);
             }
 
-            var versionedCache = IotCoreAppDeploymentCache + "\\" + Assembly.GetAssembly(typeof(InoProject)).GetName().Version;
+            var versionedCache = IotCoreAppDeploymentCache + @"\" + InoVersion;
             var buildOutputDir = ProcessorArchitecture + "\\" + DependencyConfiguration + "\\";
             var fullBuildOutputDir = outputFolder + "\\" + buildOutputDir;
 
