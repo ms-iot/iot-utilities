@@ -6,7 +6,7 @@
       "websiteURL": "https://github.com/ms-iot/iot-utilities/tree/master/IotCoreAppDeployment/ArduinoIde/",
       "email": "bfjelds@microsoft.com",
       "help": {
-        "online": "http://ms-iot.github.io/content/en-US/win10/IotCoreAppDeployment_ArduinoIde.htm"
+        "online": "http://developer.microsoft.com/en-us/windows/iot/IotCoreAppDeployment_ArduinoIde.htm"
       },
       "platforms": [
         {
@@ -15,14 +15,14 @@
           "version": "1.0.0",
           "category": "Contributed",
           "help": {
-            "online": "http://ms-iot.github.io/content/en-US/win10/IotCoreAppDeployment_ArduinoIde.htm"
+            "online": "http://developer.microsoft.com/en-us/windows/iot/IotCoreAppDeployment_ArduinoIde.htm"
           },
           "url": "https://github.com/ms-iot/iot-utilities/raw/master/IotCoreAppDeployment/ArduinoIde/release/win10_iotcore-1.0.0_ide-1.6.6.zip",
           "archiveFileName": "win10_iotcore-1.0.0_ide-1.6.6.zip",
           "checksum": "SHA-256:ed1b42b396217e242cd3a5b597ad5dad5957cb8117dd0f972376bafab7d8a0e5",
           "size": "47325480",
           "help": {
-                    "online": "http://ms-iot.github.io/content/en-US/win10/IotCoreAppDeployment_ArduinoIde.htm"
+                    "online": "http://developer.microsoft.com/en-us/windows/iot/IotCoreAppDeployment_ArduinoIde.htm"
           },
           "boards": [
             {"name": "Windows 10 IoT Core"}
@@ -35,14 +35,14 @@
           "version": "1.1.0",
           "category": "Contributed",
           "help": {
-            "online": "http://ms-iot.github.io/content/en-US/win10/IotCoreAppDeployment_ArduinoIde.htm"
+            "online": "http://developer.microsoft.com/en-us/windows/iot/IotCoreAppDeployment_ArduinoIde.htm"
           },
           "url": "https://github.com/ms-iot/iot-utilities/raw/master/IotCoreAppDeployment/ArduinoIde/release/win10_iotcore-1.1.0_ide-1.6.6.zip",
           "archiveFileName": "win10_iotcore-1.1.0_ide-1.6.6.zip",
           "checksum": "SHA-256:683dcb0a72e80b9d21117f6471e0860d8cc35cd9b86557ba6fd1ed255952413e",
           "size": "48316890",
           "help": {
-                    "online": "http://ms-iot.github.io/content/en-US/win10/IotCoreAppDeployment_ArduinoIde.htm"
+                    "online": "http://developer.microsoft.com/en-us/windows/iot/IotCoreAppDeployment_ArduinoIde.htm"
           },
           "boards": [
             {"name": "Windows 10 IoT Core"}
