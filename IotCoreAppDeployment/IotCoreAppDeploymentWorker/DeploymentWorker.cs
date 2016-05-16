@@ -15,6 +15,7 @@ using System.Globalization;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net.Sockets;
+using System.Reflection;
 
 namespace Microsoft.Iot.IotCoreAppDeployment
 {
@@ -434,7 +435,7 @@ namespace Microsoft.Iot.IotCoreAppDeployment
                 }
             }
 
-            return deployResult == HttpStatusCode.OK;
+            return deployResult == HttpStatusCode.OK || deployResult == HttpStatusCode.Accepted;
         }
 
         private HttpStatusCode DeployAppx(string outputAppx, string outputCer, ReadOnlyCollection<FileStreamInfo> dependencies, string dependencyFolder, string identityName)
@@ -551,10 +552,7 @@ namespace Microsoft.Iot.IotCoreAppDeployment
             {
                 if (targetName.Equals("?"))
                 {
-                    TelemetryClient.TrackEvent("DeployFromArduinoIde", new Dictionary<string, string>()
-                    {
-                        { "MachineId", getMachineId() },
-                    });
+                    TelemetryClient.TrackEvent("DeployFromArduinoIde", new Dictionary<string, string>() { });
                 }
 
                 // Use last successful deployment target as default
@@ -671,6 +669,11 @@ namespace Microsoft.Iot.IotCoreAppDeployment
                 return false;
             }
             OutputMessage(string.Format(CultureInfo.InvariantCulture, Resource.DeploymentWorker_FoundProjectForSource, project.Name));
+            TelemetryClient.TrackEvent("DeployProjectType", new Dictionary<string, string>()
+                {
+                    { "ProjectType", project.Name },
+                    { "ProjectTargetArchitecture", targetType.ToString() },
+                });
 
             // Configure IProject with user input
             project.SourceInput = source;
@@ -718,17 +721,20 @@ namespace Microsoft.Iot.IotCoreAppDeployment
             var createResult = CreateAppx(template, project, makeAppxCmd, outputAppx);
             if (!createResult)
             {
+                TelemetryClient.TrackEvent("CreateAppxFailure", new Dictionary<string, string>() { });
                 return false;
             }
 
             var pfxFile = outputFolder + @"\TemporaryKey.pfx";
             if (!SignAppx(signToolCmd, outputAppx, pfxFile))
             {
+                TelemetryClient.TrackEvent("SignAppxFailure", new Dictionary<string, string>() { });
                 return false;
             }
 
             if (!CreateCertFromPfx(powershellCmd, pfxFile, outputCer))
             {
+                TelemetryClient.TrackEvent("CreateCertFailure", new Dictionary<string, string>() { });
                 return false;
             }
 
@@ -741,6 +747,7 @@ namespace Microsoft.Iot.IotCoreAppDeployment
             var deployResult = HandleUnauthenticatedDeployAppx(outputAppx, outputCer, dependencies, artifactsFolder, project.IdentityName);
             if (!deployResult)
             {
+                TelemetryClient.TrackEvent("WebbDeployFailure", new Dictionary<string, string>() { });
                 return deployResult;
             }
 
@@ -810,37 +817,41 @@ namespace Microsoft.Iot.IotCoreAppDeployment
 
         public static bool Execute(string[] args, Stream outputStream)
         {
+            var sessionId = Guid.NewGuid().ToString();
+            var machineId = getMachineId();
             // Create AppInsights telemetry client to track app usage
             TelemetryClient = new Microsoft.ApplicationInsights.TelemetryClient();
-            TelemetryClient.Context.User.Id = getMachineId();
-            TelemetryClient.Context.Session.Id = Guid.NewGuid().ToString();
+            TelemetryClient.Context.User.Id = machineId;
+            TelemetryClient.Context.Session.Id = sessionId;
 
-            var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
-            var id = getMachineId();
+            Assembly assembly = Assembly.GetAssembly(typeof(DeploymentWorker));
+            FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(assembly.Location);
+            var version = fileVersionInfo.ProductVersion;
             TelemetryClient.TrackEvent("DeployStart", new Dictionary<string, string>()
             {
-                { "MachineId", id },
                 { "AppVersion", version }
             });
 
             var worker = new DeploymentWorker(outputStream);
             if (!worker.argsHandler.HandleCommandLineArgs(args))
             {
-                TelemetryClient.TrackEvent("DeployResult", new Dictionary<string, string>()
-                {
-                    { "IncorrectArgs", true.ToString() },
-                    { "Result", false.ToString() }
-                });
+                TelemetryClient.TrackEvent("DeployFailed_IncorrectArgs", new Dictionary<string, string>() { });
+                TelemetryClient.Flush();
                 return false;
             }
 
             worker.OutputMessage(Resource.DeploymentWorker_Starting);
             var taskResult = worker.CreateAndDeployApp();
-            TelemetryClient.TrackEvent("DeployResult", new Dictionary<string, string>()
+            if (taskResult)
             {
-                { "Result", taskResult.ToString() }
-            });
+                TelemetryClient.TrackEvent("DeploySucceeded", new Dictionary<string, string>() { });
+            }
+            else
+            {
+                TelemetryClient.TrackEvent("DeployFailed", new Dictionary<string, string>() { });
+            }
 
+            TelemetryClient.Flush();
             return taskResult;
         }
     }
