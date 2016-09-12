@@ -21,7 +21,7 @@ namespace IoTAPIPortingTool
             WindowsIoTNonUAP = 4,
         }
 
-        private const string functionSelect = "SELECT * FROM FUNCTION WHERE F_NAME = '{0}';";
+        private const string functionSelect = "SELECT * FROM FUNCTION WHERE F_NAME = '{0}' ";
         private const string functionSelectWithDll = functionSelect + "AND F_DLL_NAME = '{1}';";
         private const string selectDll = "SELECT * FROM DLL WHERE D_NAME = '{0}'";
 
