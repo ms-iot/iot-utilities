@@ -398,7 +398,7 @@ namespace IoTAPIPortingTool
             // Summary output
             Console.Out.WriteLine(string.Format("{0}{1}Summary for {2}", Environment.NewLine, Environment.NewLine, filename));
             Console.Out.WriteLine(invalidDllCount == 0 ? "All DLLs are compatible" : "Number of DLLs incompatible: " + invalidDllCount);
-            Console.Out.WriteLine(invalidFunctionCount == 0 ? "All functions are comptible" : "Number of functions incompatible: " + invalidFunctionCount);
+            Console.Out.WriteLine(invalidFunctionCount == 0 ? "All functions are compatible" : "Number of functions incompatible: " + invalidFunctionCount);
 
             if (differentDllFunctionCount > 0) {
                 Console.Out.WriteLine("Number of functions found in different DLLs: " + differentDllFunctionCount);
