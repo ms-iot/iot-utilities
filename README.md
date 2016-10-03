@@ -5,7 +5,7 @@ Windows 10 IoT Utilities
 
 Please download, build, use, and contribute!!  For more information and descriptions about the utilities found here, see:
 
-* [Windows 10 IoT Core API Porting Tool](http://ms-iot.github.io/content/en-US/win10/tools/IoTAPIPortingTool.htm)
+* [Windows 10 IoT Core API Porting Tool](https://developer.microsoft.com/en-us/windows/iot/docs/iotcoreportingtool)
 
 For more information about Windows 10 IoT Core, see our online documentation [here](http://windowsondevices.com)
 
