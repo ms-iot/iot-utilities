@@ -57,8 +57,8 @@
           "help": {
             "online": "http://ms-iot.github.io/content/en-US/win10/IotCoreAppDeployment_ArduinoIde.htm"
           },
-          "url": "https://github.com/ms-iot/iot-utilities/raw/master/IotCoreAppDeployment/ArduinoIde/release/win10_iotcore-1.1.1_ide-1.6.13.zip",
-          "archiveFileName": "win10_iotcore-1.1.1_ide-1.6.13.zip",
+          "url": "https://github.com/ms-iot/iot-utilities/raw/master/IotCoreAppDeployment/ArduinoIde/release/win10_iotcore-1.1.1_ide-1.6.11.zip",
+          "archiveFileName": "win10_iotcore-1.1.1_ide-1.6.11.zip",
           "checksum": "SHA-256:f455f2829164065faacde141b3c15604c51bb79b6874d55d1124c66aae372693",
           "size": "48317624",
           "help": {
