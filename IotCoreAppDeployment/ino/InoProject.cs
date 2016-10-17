@@ -393,22 +393,6 @@ namespace Microsoft.Iot.Ino
             compilerArgsBuilder.Append("/FU\"" + cachedRoot + "\\lightning\\lib\\uap10.0\\Microsoft.IoT.Lightning.Providers.winmd\" ");
             compilerArgsBuilder.Append("/FU\"" + VCLibPath + "\\STORE\\REFERENCES\\PLATFORM.WINMD\" ");
 
-            var winmdFiles = System.IO.Directory.GetFiles(SdkRoot, "*.winmd", SearchOption.AllDirectories);
-            var alreadyUsed = new HashSet<string>();
-            alreadyUsed.Add("windows.applicationmodel.calls.callsphonecontract.winmd");
-            alreadyUsed.Add("windows.management.orchestration.orchestrationcontract.winmd");
-            foreach (var winmdPath in winmdFiles)
-            {
-                var winmdFile = Path.GetFileName(winmdPath).ToLower();
-                if (!alreadyUsed.Contains(winmdFile) && !String.Equals("windows.winmd", winmdFile))
-                {
-                    compilerArgsBuilder.Append("/FU \"");
-                    compilerArgsBuilder.Append(winmdPath);
-                    compilerArgsBuilder.Append("\" ");
-                    alreadyUsed.Add(winmdFile);
-                }
-            }
-            /*
             var winmdReferenceFormat = "/FU\"" + SdkRoot + "REFERENCES\\{0}\\{1}\\{2}\" ";
             compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.APPLICATIONMODEL.ACTIVATION.ACTIVATEDEVENTSCONTRACT", "1.0.0.0", "WINDOWS.APPLICATIONMODEL.ACTIVATION.ACTIVATEDEVENTSCONTRACT.WINMD"));
             compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.APPLICATIONMODEL.ACTIVATION.ACTIVATIONCAMERASETTINGSCONTRACT", "1.0.0.0", "WINDOWS.APPLICATIONMODEL.ACTIVATION.ACTIVATIONCAMERASETTINGSCONTRACT.WINMD"));
@@ -459,7 +443,6 @@ namespace Microsoft.Iot.Ino
             compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.FOUNDATION.UNIVERSALAPICONTRACT", "2.0.0.0", "WINDOWS.FOUNDATION.UNIVERSALAPICONTRACT.WINMD"));
             compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.GRAPHICS.PRINTING3D.PRINTING3DCONTRACT", "2.0.0.0", "WINDOWS.GRAPHICS.PRINTING3D.PRINTING3DCONTRACT.WINMD"));
             compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.NETWORKING.CONNECTIVITY.WWANCONTRACT", "1.0.0.0", "WINDOWS.NETWORKING.CONNECTIVITY.WWANCONTRACT.WINMD"));
-            */
             compilerArgsBuilder.Append("/analyze- ");
 
             compilerArgsBuilder.Append(filesToBuild.ToString());
