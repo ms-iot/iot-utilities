@@ -76,6 +76,9 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\microsoft.iot.lightning.1.1.0-alpha.nupkg" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\PinNumbers.h" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

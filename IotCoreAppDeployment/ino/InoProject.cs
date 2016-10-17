@@ -347,6 +347,7 @@ namespace Microsoft.Iot.Ino
             // Construct compiler arguments
             var compilerArgsBuilder = new StringBuilder();
             compilerArgsBuilder.Append("/c ");
+            compilerArgsBuilder.Append("/showIncludes ");
             compilerArgsBuilder.Append("/I\"" + sourceRoot + "\\\\\" ");
             compilerArgsBuilder.Append("/I\"" + cachedRoot + "\\lightning\\include\\\\\" ");
             compilerArgsBuilder.Append("/I\"" + cachedRoot + "\\lightning\\include\\avr\\\\\" ");
@@ -366,6 +367,7 @@ namespace Microsoft.Iot.Ino
             compilerArgsBuilder.Append("/Od ");
             compilerArgsBuilder.Append("/Oy- ");
             compilerArgsBuilder.Append("/D _WINRT_DLL ");
+            compilerArgsBuilder.Append("/D _WIN_IOT ");
             compilerArgsBuilder.Append("/D _ARM_WINAPI_PARTITION_DESKTOP_SDK_AVAILABLE=1 ");
             compilerArgsBuilder.Append("/D _WINDLL ");
             compilerArgsBuilder.Append("/D _UNICODE ");
@@ -528,6 +530,12 @@ namespace Microsoft.Iot.Ino
             if (!CopyResourceFileBuildFolder("pch.h", outputFolder))
             {
                 Debug.WriteLine(string.Format(CultureInfo.InvariantCulture, Resource.InoProject_PchFailure));
+                return Task.FromResult(false);
+            }
+            // Get PinNumbers.h from resources
+            if (!CopyResourceFileBuildFolder("PinNumbers.h", outputFolder))
+            {
+                Debug.WriteLine(string.Format(CultureInfo.InvariantCulture, Resource.InoProject_StartupTaskFailure));
                 return Task.FromResult(false);
             }
             // Get StartupTask.cpp from resources
