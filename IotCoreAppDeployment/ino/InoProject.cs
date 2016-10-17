@@ -347,6 +347,7 @@ namespace Microsoft.Iot.Ino
             // Construct compiler arguments
             var compilerArgsBuilder = new StringBuilder();
             compilerArgsBuilder.Append("/c ");
+            compilerArgsBuilder.Append("/showIncludes ");
             compilerArgsBuilder.Append("/I\"" + sourceRoot + "\\\\\" ");
             compilerArgsBuilder.Append("/I\"" + cachedRoot + "\\lightning\\include\\\\\" ");
             compilerArgsBuilder.Append("/I\"" + cachedRoot + "\\lightning\\include\\avr\\\\\" ");
@@ -366,6 +367,7 @@ namespace Microsoft.Iot.Ino
             compilerArgsBuilder.Append("/Od ");
             compilerArgsBuilder.Append("/Oy- ");
             compilerArgsBuilder.Append("/D _WINRT_DLL ");
+            compilerArgsBuilder.Append("/D _WIN_IOT ");
             compilerArgsBuilder.Append("/D _ARM_WINAPI_PARTITION_DESKTOP_SDK_AVAILABLE=1 ");
             compilerArgsBuilder.Append("/D _WINDLL ");
             compilerArgsBuilder.Append("/D _UNICODE ");
@@ -391,6 +393,22 @@ namespace Microsoft.Iot.Ino
             compilerArgsBuilder.Append("/FU\"" + cachedRoot + "\\lightning\\lib\\uap10.0\\Microsoft.IoT.Lightning.Providers.winmd\" ");
             compilerArgsBuilder.Append("/FU\"" + VCLibPath + "\\STORE\\REFERENCES\\PLATFORM.WINMD\" ");
 
+            var winmdFiles = System.IO.Directory.GetFiles(SdkRoot, "*.winmd", SearchOption.AllDirectories);
+            var alreadyUsed = new HashSet<string>();
+            alreadyUsed.Add("windows.applicationmodel.calls.callsphonecontract.winmd");
+            alreadyUsed.Add("windows.management.orchestration.orchestrationcontract.winmd");
+            foreach (var winmdPath in winmdFiles)
+            {
+                var winmdFile = Path.GetFileName(winmdPath).ToLower();
+                if (!alreadyUsed.Contains(winmdFile) && !String.Equals("windows.winmd", winmdFile))
+                {
+                    compilerArgsBuilder.Append("/FU \"");
+                    compilerArgsBuilder.Append(winmdPath);
+                    compilerArgsBuilder.Append("\" ");
+                    alreadyUsed.Add(winmdFile);
+                }
+            }
+            /*
             var winmdReferenceFormat = "/FU\"" + SdkRoot + "REFERENCES\\{0}\\{1}\\{2}\" ";
             compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.APPLICATIONMODEL.ACTIVATION.ACTIVATEDEVENTSCONTRACT", "1.0.0.0", "WINDOWS.APPLICATIONMODEL.ACTIVATION.ACTIVATEDEVENTSCONTRACT.WINMD"));
             compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.APPLICATIONMODEL.ACTIVATION.ACTIVATIONCAMERASETTINGSCONTRACT", "1.0.0.0", "WINDOWS.APPLICATIONMODEL.ACTIVATION.ACTIVATIONCAMERASETTINGSCONTRACT.WINMD"));
@@ -441,6 +459,7 @@ namespace Microsoft.Iot.Ino
             compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.FOUNDATION.UNIVERSALAPICONTRACT", "2.0.0.0", "WINDOWS.FOUNDATION.UNIVERSALAPICONTRACT.WINMD"));
             compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.GRAPHICS.PRINTING3D.PRINTING3DCONTRACT", "2.0.0.0", "WINDOWS.GRAPHICS.PRINTING3D.PRINTING3DCONTRACT.WINMD"));
             compilerArgsBuilder.Append(string.Format(CultureInfo.InvariantCulture, winmdReferenceFormat, "WINDOWS.NETWORKING.CONNECTIVITY.WWANCONTRACT", "1.0.0.0", "WINDOWS.NETWORKING.CONNECTIVITY.WWANCONTRACT.WINMD"));
+            */
             compilerArgsBuilder.Append("/analyze- ");
 
             compilerArgsBuilder.Append(filesToBuild.ToString());
@@ -528,6 +547,12 @@ namespace Microsoft.Iot.Ino
             if (!CopyResourceFileBuildFolder("pch.h", outputFolder))
             {
                 Debug.WriteLine(string.Format(CultureInfo.InvariantCulture, Resource.InoProject_PchFailure));
+                return Task.FromResult(false);
+            }
+            // Get PinNumbers.h from resources
+            if (!CopyResourceFileBuildFolder("PinNumbers.h", outputFolder))
+            {
+                Debug.WriteLine(string.Format(CultureInfo.InvariantCulture, Resource.InoProject_StartupTaskFailure));
                 return Task.FromResult(false);
             }
             // Get StartupTask.cpp from resources

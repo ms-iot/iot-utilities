@@ -1,0 +1,13 @@
+menu.cpu=Processor
+
+w10iotcore.name=Windows 10 IoT Core
+w10iotcore.build.board=WIN10_IOTCORE
+w10iotcore.build.core=arduino
+w10iotcore.upload.tool=icad
+w10iotcore.program.tool=icad
+
+w10iotcore.menu.cpu.x86=x86
+w10iotcore.menu.cpu.x86.program.f_cpu=x86
+
+w10iotcore.menu.cpu.arm=arm
+w10iotcore.menu.cpu.arm.program.f_cpu=arm
