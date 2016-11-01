@@ -276,7 +276,7 @@ namespace Microsoft.Iot.Ino
             return new ReadOnlyCollection<FileStreamInfo>(new List<FileStreamInfo>());
         }
 
-        private static void ExecuteExternalProcess(string executableFileName, string workingDirectory, string arguments, string logFileName)
+        private static int ExecuteExternalProcess(string executableFileName, string workingDirectory, string arguments, string logFileName)
         {
             using (var process = new Process())
             {
@@ -316,6 +316,8 @@ namespace Microsoft.Iot.Ino
                     logStream.WriteLine("\n\n\n\nFull Output:");
                     logStream.Write(output.ToString());
                 }
+
+                return process.ExitCode;
             }
         }
         private bool CompileFile(string sourceFile, string sourceRoot, string cachedRoot, string fullBuildOutputDir, bool useCachedVersionIfAvailable)
@@ -449,7 +451,7 @@ namespace Microsoft.Iot.Ino
 
             // Compile the given files
             var compilerArgs = compilerArgsBuilder.ToString();
-            ExecuteExternalProcess(CompilerPathFromRegistry, VCToolsWorkingDirectoryFromRegistry, compilerArgs, sourceRoot + "\\compile.log");
+            var exitCode = ExecuteExternalProcess(CompilerPathFromRegistry, VCToolsWorkingDirectoryFromRegistry, compilerArgs, sourceRoot + "\\compile.log");
 
             // Check for the resulting obj file to determine success
             foreach (var sourceFile in sourceFiles)
@@ -460,7 +462,7 @@ namespace Microsoft.Iot.Ino
 
                 var objFilename = filename.Substring(0, filename.Length - extension.Length) + ".obj";
                 var objFilePath = fullBuildOutputDir + "\\" + objFilename;
-                if (!File.Exists(objFilePath))
+                if (exitCode != 0 || !File.Exists(objFilePath))
                 {
                     Debug.WriteLine(string.Format(CultureInfo.InvariantCulture, Resource.InoProject_CompileFailed, sourceFile, objFilePath));
                     return false;
@@ -649,10 +651,10 @@ namespace Microsoft.Iot.Ino
             }
 
             var linkerArgs = linkerArgsBuilder.ToString();
-            ExecuteExternalProcess(LinkerPathFromRegistry, VCToolsWorkingDirectoryFromRegistry, linkerArgs, outputFolder + "\\linker.log");
+            var exitCode = ExecuteExternalProcess(LinkerPathFromRegistry, VCToolsWorkingDirectoryFromRegistry, linkerArgs, outputFolder + "\\linker.log");
 
             var dllFilePath = outputFolder + "\\" + InProcessServerPath;
-            return Task.FromResult(File.Exists(dllFilePath));
+            return Task.FromResult(exitCode == 0 && File.Exists(dllFilePath));
         }
 
         public Task<bool> BuildAsync(string outputFolder, StreamWriter logging)
