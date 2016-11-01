@@ -68,6 +68,26 @@
             {"name": "Windows 10 IoT Core"}
           ],
           "toolsDependencies":[]
+        },
+        {
+          "name": "Windows 10 Iot Core",
+          "architecture": "win10",
+          "version": "1.1.2",
+          "category": "Contributed",
+          "help": {
+            "online": "http://ms-iot.github.io/content/en-US/win10/IotCoreAppDeployment_ArduinoIde.htm"
+          },
+          "url": "https://github.com/ms-iot/iot-utilities/raw/master/IotCoreAppDeployment/ArduinoIde/release/win10_iotcore-1.1.2_ide-1.6.11.zip",
+          "archiveFileName": "win10_iotcore-1.1.2_ide-1.6.11.zip",
+          "checksum": "SHA-256:b1c9956b46f33bcebb7f500d29931b19ed4723c713ac0439681ea1fb172722d1",
+          "size": "48317648",
+          "help": {
+                    "online": "http://ms-iot.github.io/content/en-US/win10/IotCoreAppDeployment_ArduinoIde.htm"
+          },
+          "boards": [
+            {"name": "Windows 10 IoT Core"}
+          ],
+          "toolsDependencies":[]
         }
       ],
       "tools":[]
