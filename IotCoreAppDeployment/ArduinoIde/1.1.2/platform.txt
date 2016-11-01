@@ -1,0 +1,24 @@
+name=Windows 10 IoT Core
+version=10.0.10583.0
+
+#
+# configure ICAD tool to run as programmer ... ICAD will prompt user for IP address of board ("-n ?")
+#
+tools.icad.cmd.path={runtime.platform.path}\tools\icad\IotCoreAppDeployment.exe
+tools.icad.program.pattern="{cmd.path}" -a {program.f_cpu} -n ? -s "{build.path}\sketch\{build.project_name}.ino" -t "{build.path}" -d
+tools.icad.program.params.verbose=1
+tools.icad.program.params.quiet=
+
+# do just enough to get through the IDE build steps so that the ICAD tool can take over
+#
+recipe.c.o.pattern=cmd /c echo stub for recipe.c.o.pattern
+recipe.cpp.o.pattern=cmd /c echo stub for recipe.cpp.o.pattern
+recipe.c.combine.pattern=cmd /c echo stub for recipe.c.combine.pattern
+recipe.preproc.includes=cmd /c echo stub for recipe.preproc.includes
+
+#
+# ensure that the modified cpp is copied to an ino file for the ICAD tool
+# ensure that preproc\ctags_target_for_gcc_minus_e.cpp exists for tools.ctags.pattern
+#
+recipe.preproc.macros=cmd /c ( if not exist "{build.path}\preproc" mkdir "{build.path}\preproc" ) && ( copy "{build.path}\sketch\{build.project_name}.cpp" "{build.path}\sketch\{build.project_name}.ino" ) && ( copy "{build.path}\sketch\{build.project_name}.cpp" "{build.path}\preproc\ctags_target_for_gcc_minus_e.cpp" )
+
