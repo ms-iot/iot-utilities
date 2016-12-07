@@ -344,13 +344,16 @@ namespace IoTAPIPortingTool
                                 var functionExists = dataReader.Read();
                                 dataReader.Close();
 
-                                apiDBCommand.CommandText = string.Format(apiQuery, functionName);
-                                dataReader = apiDBCommand.ExecuteReader();
+                                if (isUAP)
+                                {
+                                    apiDBCommand.CommandText = string.Format(apiQuery, functionName);
+                                    dataReader = apiDBCommand.ExecuteReader();
 
-                                functionExists &= dataReader.Read();
+                                    functionExists &= dataReader.Read();
 
-                                dataReader.Close();
-
+                                    dataReader.Close();
+                                }
+                                
                                 if (!functionExists)
                                 {
                                     invalidFunctionCount++;
