@@ -1,0 +1,148 @@
+﻿<!--
+//*********************************************************
+//
+// Copyright (c) Microsoft. All rights reserved.
+// THIS CODE IS PROVIDED *AS IS* WITHOUT WARRANTY OF
+// ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY
+// IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR
+// PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
+//
+//*********************************************************
+-->
+
+<Page
+    x:Class="SystemFunctionalTest.MenuPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:SystemFunctionalTest"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Customize test items -->
+        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+            <StackPanel Orientation="Vertical">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" Name="btnTest0"  Content="" Visibility="Collapsed" Click="MenuPage_Click" Style="{StaticResource TestMenuButton}"/>
+                    <Button Grid.Column="1" Name="btnTest1"  Content="" Visibility="Collapsed" Click="MenuPage_Click" Style="{StaticResource TestMenuButton}"/>
+                    <Button Grid.Column="2" Name="btnTest2"  Content="" Visibility="Collapsed" Click="MenuPage_Click" Style="{StaticResource TestMenuButton}"/>
+                </Grid>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" Name="btnTest3"  Content="" Visibility="Collapsed" Click="MenuPage_Click" Style="{StaticResource TestMenuButton}"/>
+                    <Button Grid.Column="1" Name="btnTest4"  Content="" Visibility="Collapsed" Click="MenuPage_Click" Style="{StaticResource TestMenuButton}"/>
+                    <Button Grid.Column="2" Name="btnTest5"  Content="" Visibility="Collapsed" Click="MenuPage_Click" Style="{StaticResource TestMenuButton}"/>
+                </Grid>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" Name="btnTest6"  Content="" Visibility="Collapsed" Click="MenuPage_Click" Style="{StaticResource TestMenuButton}"/>
+                    <Button Grid.Column="1" Name="btnTest7"  Content="" Visibility="Collapsed" Click="MenuPage_Click" Style="{StaticResource TestMenuButton}"/>
+                    <Button Grid.Column="2" Name="btnTest8"  Content="" Visibility="Collapsed" Click="MenuPage_Click" Style="{StaticResource TestMenuButton}"/>
+                </Grid>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" Name="btnTest9"  Content="" Visibility="Collapsed" Click="MenuPage_Click" Style="{StaticResource TestMenuButton}"/>
+                    <Button Grid.Column="1" Name="btnTest10" Content="" Visibility="Collapsed" Click="MenuPage_Click" Style="{StaticResource TestMenuButton}"/>
+                    <Button Grid.Column="2" Name="btnTest11" Content="" Visibility="Collapsed" Click="MenuPage_Click" Style="{StaticResource TestMenuButton}"/>
+                </Grid>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" Name="btnTest12" Content="" Visibility="Collapsed" Click="MenuPage_Click" Style="{StaticResource TestMenuButton}"/>
+                    <Button Grid.Column="1" Name="btnTest13" Content="" Visibility="Collapsed" Click="MenuPage_Click" Style="{StaticResource TestMenuButton}"/>
+                    <Button Grid.Column="2" Name="btnTest14" Content="" Visibility="Collapsed" Click="MenuPage_Click" Style="{StaticResource TestMenuButton}" />
+                </Grid>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" Name="btnTest15" Content="" Visibility="Collapsed" Click="MenuPage_Click" Style="{StaticResource TestMenuButton}"/>
+                    <Button Grid.Column="1" Name="btnTest16" Content="" Visibility="Collapsed" Click="MenuPage_Click" Style="{StaticResource TestMenuButton}"/>
+                    <Button Grid.Column="2" Name="btnTest17" Content="" Visibility="Collapsed" Click="MenuPage_Click" Style="{StaticResource TestMenuButton}"/>
+                </Grid>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" Name="btnTest18" Content="" Visibility="Collapsed" Click="MenuPage_Click" Style="{StaticResource TestMenuButton}"/>
+                    <Button Grid.Column="1" Name="btnTest19" Content="" Visibility="Collapsed" Click="MenuPage_Click" Style="{StaticResource TestMenuButton}"/>
+                    <Button Grid.Column="2" Name="btnTest20" Content="" Visibility="Collapsed" Click="MenuPage_Click" Style="{StaticResource TestMenuButton}"/>
+                </Grid>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" Name="btnTest21" Content="" Visibility="Collapsed" Click="MenuPage_Click" Style="{StaticResource TestMenuButton}"/>
+                    <Button Grid.Column="1" Name="btnTest22" Content="" Visibility="Collapsed" Click="MenuPage_Click" Style="{StaticResource TestMenuButton}"/>
+                    <Button Grid.Column="2" Name="btnTest23" Content="" Visibility="Collapsed" Click="MenuPage_Click" Style="{StaticResource TestMenuButton}"/>
+                </Grid>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" Name="btnTest24" Content="" Visibility="Collapsed" Click="MenuPage_Click" Style="{StaticResource TestMenuButton}"/>
+                    <Button Grid.Column="1" Name="btnTest25" Content="" Visibility="Collapsed" Click="MenuPage_Click" Style="{StaticResource TestMenuButton}"/>
+                    <Button Grid.Column="2" Name="btnTest26" Content="" Visibility="Collapsed" Click="MenuPage_Click" Style="{StaticResource TestMenuButton}"/>
+                </Grid>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" Name="btnTest27" Content="" Visibility="Collapsed" Click="MenuPage_Click" Style="{StaticResource TestMenuButton}"/>
+                    <Button Grid.Column="1" Name="btnTest28" Content="" Visibility="Collapsed" Click="MenuPage_Click" Style="{StaticResource TestMenuButton}"/>
+                    <Button Grid.Column="2" Name="btnTest29" Content="" Visibility="Collapsed" Click="MenuPage_Click" Style="{StaticResource TestMenuButton}"/>
+                </Grid>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" Name="btnTest30" Content="" Visibility="Collapsed" Click="MenuPage_Click" Style="{StaticResource TestMenuButton}"/>
+                    <Button Grid.Column="1" Name="btnTest31" Content="" Visibility="Collapsed" Click="MenuPage_Click" Style="{StaticResource TestMenuButton}"/>
+                    <Button Grid.Column="2" Name="btnTest32" Content="" Visibility="Collapsed" Click="MenuPage_Click" Style="{StaticResource TestMenuButton}"/>
+                </Grid>
+            </StackPanel>
+        </ScrollViewer>
+
+        <Grid Grid.Row="1" Margin="0,3,0,0">
+            <Button x:Uid="MainPage" Name="btnMain" Content="" Visibility="Visible"  Click="MenuPage_Click" Style="{StaticResource FeedbackButton}"/>
+        </Grid>
+    </Grid>
+</Page>

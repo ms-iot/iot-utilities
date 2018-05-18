@@ -1,0 +1,55 @@
+﻿<!--
+//*********************************************************
+//
+// Copyright (c) Microsoft. All rights reserved.
+// THIS CODE IS PROVIDED *AS IS* WITHOUT WARRANTY OF
+// ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY
+// IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR
+// PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
+//
+//*********************************************************
+-->
+
+<Page
+    x:Class="SystemFunctionalTest.TestCompass"
+    Name="_Compass"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:SystemFunctionalTest"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="7*"/>
+            <RowDefinition Height="1*"/>
+        </Grid.RowDefinitions>
+
+        <!--ContentPanel - place Content-->
+        <Grid x:Name="ContentPanel" Grid.Row="0" Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <StackPanel x:Name="Message" Margin="0,0,0,0" Width="Auto" Height="Auto" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock x:Name="txtTitle" FontSize="{StaticResource TitleFontSize}" HorizontalAlignment="Center" VerticalAlignment ="Center"/>
+                <TextBlock x:Name="txtMessage" FontSize="{StaticResource MessageFontSize}" FontWeight="Bold" Foreground="Red" HorizontalAlignment="Center" VerticalAlignment ="Center"/>
+                <TextBlock x:Name="txtStatus" FontSize="{StaticResource StatusFontSize}" TextWrapping="Wrap" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <Image Name="imgPage" Height="256" Margin="16" Source="/Assets/Compass.png">
+                    <Image.RenderTransform>
+                        <RotateTransform x:Name="rotateTransform"/>
+                    </Image.RenderTransform>
+                </Image>
+            </StackPanel>
+        </Grid>
+
+        <!-- ResultPanel - place test results here-->
+        <Grid x:Name="ResultPanel" Grid.Row="1" Margin="0,0,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" x:Uid="Feedback_Pass"  x:Name="btnPass"   Click="Result_Click" Style="{StaticResource FeedbackButton}"/>
+            <Button Grid.Column="1" x:Uid="Feedback_Fail"  x:Name="btnFail"   Click="Result_Click" Style="{StaticResource FeedbackButton}"/>
+            <Button Grid.Column="2" x:Uid="Feedback_Reset" x:Name="btnReset"  Click="Result_Click" Style="{StaticResource FeedbackButton}"/>
+        </Grid>
+    </Grid>
+</Page>
