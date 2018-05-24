@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities" IgnorableNamespaces="uap mp rescap">
+  <Identity Name="SystemFunctionTestUWP" Publisher="CN=IoTCoreSFT" Version="1.0.0.0" />
+  <mp:PhoneIdentity PhoneProductId="102c0eb2-28e7-4dce-86a3-dd52eb8e3743" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
+  <Properties>
+    <DisplayName>SystemFunctionalTest</DisplayName>
+    <PublisherDisplayName>SFT for IOT</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+  </Properties>
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.0.0" MaxVersionTested="10.0.0.0" />
+  </Dependencies>
+  <Resources>
+    <Resource Language="x-generate" />
+    <!--
+      <Resource Language="en-US"/>
+      <Resource Language="zh-CN"/>
+      <Resource Language="zh-TW"/>
+    -->
+  </Resources>
+  <Applications>
+    <Application Id="App" Executable="$targetnametoken$.exe" EntryPoint="SystemFunctionalTest.App">
+      <uap:VisualElements DisplayName="SystemFunctionalTest" Square150x150Logo="Assets\Logo.png" Square44x44Logo="Assets\SmallLogo.png" Description="SystemFunctionalTest" BackgroundColor="transparent">
+        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png">
+          <uap:ShowNameOnTiles>
+            <uap:ShowOn Tile="square150x150Logo" />
+            <uap:ShowOn Tile="wide310x150Logo" />
+          </uap:ShowNameOnTiles>
+        </uap:DefaultTile>
+        <uap:SplashScreen Image="Assets\SplashScreen.png" />
+      </uap:VisualElements>
+      <Extensions>
+        <uap:Extension Category="windows.protocol">
+          <uap:Protocol Name="oem-tool-sft" />
+        </uap:Extension>
+      </Extensions>
+    </Application>
+  </Applications>
+  <Capabilities>
+    <Capability Name="internetClient" />
+    <uap:Capability Name="picturesLibrary" />
+    <!-- Capability - oemPublicDirectory - for OEM partners only
+         Remove comments to enable this capability.
+    -->
+    <!--
+    <rescap:Capability Name="oemPublicDirectory" />
+    -->
+    <DeviceCapability Name="radios" />
+    <DeviceCapability Name="WiFiControl" />
+  </Capabilities>
+</Package>

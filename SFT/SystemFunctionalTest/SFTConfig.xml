@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SystemFunctionalTest>
+
+    <!-- min app version : 1.0.0.0 -->
+
+    <!-- [User Preffered Language] :
+			    The default language selection is decided automatically according to phone UI language setting.
+			    To specify a language for this App to override auto language selection,
+			    please uncomment the following tag "Language", and set to language code that's available for this App.
+			    Available languages are : English (en-US),
+    -->
+    <!--
+    <Language Name="en-US" />
+    -->
+
+    <!-- [Log Enable/Disable] :
+			    The following tag "Log" is provided to disable/enable logging.
+			    Log is defaultly enabled (if this tag is not set), unless to modify code to change this default value.
+			    To disable log, set "Enable" attribute to "False"; to enable log, set "Enable" attribute to "True".
+    -->
+    <!--
+    <Log Enable="False" />
+    -->
+
+    <!-- [AutoTest Scenario Configuration] :
+			    The following tag "AutoTest" is provided to configure autotest scenario.
+			    Currently only one attribute is available:
+                "StopAtFail" : to enable(true) abort auto sequnce if any test item fails, 
+                               or disable(false, default value) to allow going thru all test items.
+    -->
+    <!--
+    <AutoTest StopAtFail="True" />
+    -->
+
+    <Phase Name="IoTCore">
+        <MainMenu >
+            <MenuItem Name="Auto">
+                <!-- "StopAtFail" attribute will override <AutoTest StopAtFail="True|False"/> configuration. -->
+                <Property StopAtFail="false"/>
+            </MenuItem>
+            <MenuItem Name="Manual"/>
+            <MenuItem Name="ClearResult"/>
+        </MainMenu>
+
+        <TestMenu>
+            <MenuItem Name="WiFi">
+                <!-- Predefined available network name list used for AutoPass (Max count = 10). -->
+                <!-- 
+                <AvailableName>NAME1</AvailableName>
+                <AvailableName>NAME2</AvailableName>
+                -->
+
+                <!-- Predefined one connection network name used for AutoPass. -->
+                <!-- 
+                <ConnectionName>NAME</ConnectionName>
+                -->
+
+                <!-- Predefined a scanned networks' signal strength threshold for searched networks defined in <AvailableName>, only if the network signal strength is equal or greater than "SignalBar" value, this test will autopass.
+                     "SignalBar" will be deprecated, use "SignalStrength" instead. "SignalStrength" will override "SignalBar".
+                -->
+                <!--
+                <Threshold SignalBar="3" />
+                -->
+                <!-- Predefined a scanned networks' signal strength threshold for searched networks defined in <AvailableName>, only if the network signal quality is equal or greater than "SignalQuality" value, this test will autopass.
+                     "SignalQuality" define signal quality threshold in percentage (100%:-50dBm ~ 0%:-100dBm), default/not-set is 0.
+                -->
+                <!--
+                <Threshold SignalQuality="50" />
+                -->
+            </MenuItem>
+            <MenuItem Name="Compass"/>
+            <MenuItem Name="Accelerometer"/>
+        </TestMenu>
+    </Phase>
+
+   
+
+  
+</SystemFunctionalTest>

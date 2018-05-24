@@ -1,0 +1,58 @@
+﻿<!--
+//*********************************************************
+//
+// Copyright (c) Microsoft. All rights reserved.
+// THIS CODE IS PROVIDED *AS IS* WITHOUT WARRANTY OF
+// ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY
+// IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR
+// PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
+//
+//*********************************************************
+-->
+
+<Page
+    x:Class="SystemFunctionalTest.TestAccelerometer"
+    Name="_Accelerometer"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:SystemFunctionalTest"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="7*"/>
+            <RowDefinition Height="1*"/>
+        </Grid.RowDefinitions>
+
+        <!--ContentPanel - place Content-->
+        <Grid x:Name="ContentPanel" Grid.Row="0" Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <StackPanel x:Name="Message"  Margin="0,0,0,0" Width="Auto" Height="Auto" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock x:Name="txtTitle" FontSize="{StaticResource TitleFontSize}" VerticalAlignment ="Center" HorizontalAlignment="Center"/>
+                <TextBlock x:Name="txtStatus" FontSize="{StaticResource StatusFontSize}" TextWrapping="Wrap" VerticalAlignment ="Center" HorizontalAlignment="Center"/>
+                <Grid Margin="36" >
+                    <Canvas Width="256" Height="256">
+                        <Ellipse Width="256" Height="256" Stroke="Gray" StrokeThickness="10"/>
+                        <Ellipse Width="128" Height="128" Stroke="Gray" StrokeThickness="10" Canvas.Left="64" Canvas.Top="64"/>
+                    </Canvas>
+                    <Canvas x:Name="canvasBall" Width="56" Height="56">
+                        <Ellipse Width="56" Height="56" Fill="DarkRed" Stroke="Gray" StrokeThickness="10"/>
+                    </Canvas>
+                </Grid>
+            </StackPanel>
+        </Grid>
+
+        <!-- ResultPanel - place test results here-->
+        <Grid x:Name="ResultPanel" Grid.Row="1" Margin="0,0,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" x:Uid="Feedback_Pass"  x:Name="btnPass"   Click="Result_Click" Style="{StaticResource FeedbackButton}"/>
+            <Button Grid.Column="1" x:Uid="Feedback_Fail"  x:Name="btnFail"   Click="Result_Click" Style="{StaticResource FeedbackButton}"/>
+            <Button Grid.Column="2" x:Uid="Feedback_Reset" x:Name="btnReset"  Click="Result_Click" Style="{StaticResource FeedbackButton}"/>
+        </Grid>
+    </Grid>
+</Page>
