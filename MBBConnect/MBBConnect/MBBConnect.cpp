@@ -1,14 +1,15 @@
 #include "pch.h"
 #include <fstream>
 #include <string>
+#include <regex>
 #include "Objbase.h"
 
 const std::string PROFILE_FILENAME = "myprofile.xml";
 
-const std::string SUBSCRIBER_ID = "Subscriber Id    : ";
-const std::string INTERFACE_NAME = "Name               : ";
-const std::string HOME_PROVIDER_NAME = "Home provider name  : ";
-const std::string SIM_ICC_ID = "SIM ICC Id       : ";
+const std::regex SUBSCRIBER_ID("Subscriber Id\\s+:\\s");
+const std::regex INTERFACE_NAME("Name\\s+:\\s");
+const std::regex HOME_PROVIDER_NAME("Home provider name\\s+:\\s");
+const std::regex SIM_ICC_ID("SIM ICC Id\\s+:\\s");
 
 const std::string NAME_TAG = "<Name>";
 const std::string SUBSCRIBER_TAG = "<SubscriberID>";
@@ -118,29 +119,31 @@ int main(int argc, char **argv)
     std::string subscriberId = Execute("netsh mbn show ready *");
     std::string simIccId = subscriberId;
 
-    if (subscriberId.find(SUBSCRIBER_ID) == std::string::npos)
+	std::smatch match;
+
+	if (!std::regex_search(subscriberId, match, SUBSCRIBER_ID))
     {
-        std::cout << "Cannot find Subscriber Id" << std::endl;
-        return 1;
-    }
+		std::cout << "Cannot find Subscriber Id" << std::endl;
+		return 1;
+	}
     else
     {
-        std::size_t begin = subscriberId.find(SUBSCRIBER_ID) + SUBSCRIBER_ID.length();
-        std::size_t end = subscriberId.find("\n", begin);
-        subscriberId = subscriberId.substr(begin, end - begin);
+		std::size_t begin = match.position() + match.length();
+		std::size_t end = subscriberId.find("\n", begin);
+		subscriberId = subscriberId.substr(begin, end - begin);
 
-        std::cout << "Subscriber Id: " << subscriberId << std::endl;
-    }
+		std::cout << "Subscriber Id: " << subscriberId << std::endl;
+	}
 
-    if (simIccId.find(SIM_ICC_ID) == std::string::npos)
+    if (!std::regex_search(simIccId, match, SIM_ICC_ID))
     {
         std::cout << "Cannot find SIM ICC Id" << std::endl;
         return 1;
     }
     else
     {
-        std::size_t begin = simIccId.find(SIM_ICC_ID) + SIM_ICC_ID.length();
-        std::size_t end = simIccId.find("\n", begin);
+		std::size_t begin = match.position() + match.length();
+		std::size_t end = simIccId.find("\n", begin);
         simIccId = simIccId.substr(begin, end - begin);
 
         std::cout << "SIM ICC Id: " << simIccId << std::endl;
@@ -148,15 +151,16 @@ int main(int argc, char **argv)
 
     std::string interfaceName = Execute("netsh mbn show interfaces *");
 	std::cout << interfaceName << std::endl;
-    if (interfaceName.find(INTERFACE_NAME) == std::string::npos)
+
+    if (!std::regex_search(interfaceName, match, INTERFACE_NAME))
     {
         std::cout << "Cannot find Interface Name" << std::endl;
         return 1;
     }
     else
     {
-        std::size_t begin = interfaceName.find(INTERFACE_NAME) + INTERFACE_NAME.length();
-        std::size_t end = interfaceName.find("\n", begin);
+		std::size_t begin = match.position() + match.length();
+		std::size_t end = interfaceName.find("\n", begin);
         interfaceName = interfaceName.substr(begin, end - begin);
 
         std::cout << "Interface Name: " << interfaceName << std::endl;
@@ -164,15 +168,15 @@ int main(int argc, char **argv)
 
     std::string homeProviderName = Execute("netsh mbn show homeprovider *");
 
-    if (homeProviderName.find(HOME_PROVIDER_NAME) == std::string::npos)
+    if (!std::regex_search(homeProviderName, match, HOME_PROVIDER_NAME))
     {
         std::cout << "Cannot find Home Provider Name" << std::endl;
         return 1;
     }
     else
     {
-        std::size_t begin = homeProviderName.find(HOME_PROVIDER_NAME) + HOME_PROVIDER_NAME.length();
-        std::size_t end = homeProviderName.find("\n", begin);
+		std::size_t begin = match.position() + match.length();
+		std::size_t end = homeProviderName.find("\n", begin);
         homeProviderName = homeProviderName.substr(begin, end - begin);
 
         std::cout << "Home Provider Name: " << homeProviderName << std::endl;
@@ -197,7 +201,7 @@ int main(int argc, char **argv)
 
     if (addProfile != "\n")
     {
-		std::cout << "Fail !" << std::endl;
+		std::cout << "Fail!" << std::endl;
 		std::cout << addProfile << std::endl;
         return 1;
     }
@@ -210,15 +214,15 @@ int main(int argc, char **argv)
 
     if (connect != "\n")
     {
-		std::cout << "Fail !" << std::endl;
+		std::cout << "Fail!" << std::endl;
 		std::cout << connect << std::endl;
-        //return 1;
+        return 1;
 	}
 	else {
 		std::cout << "Done!" << std::endl;
 		std::cout << connect << std::endl;
 	}
-	//Wait for Connection building.
+	// Wait for Connection building.
 	Sleep(1000);
 
 	interfaceName = Execute("netsh mbn show interfaces *");
