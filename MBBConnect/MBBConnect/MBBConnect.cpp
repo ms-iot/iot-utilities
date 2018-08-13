@@ -18,26 +18,26 @@ const std::string HOME_PROVIDER_TAG = "<HomeProviderName>";
 const std::string ACCESS_STRING_TAG = "<AccessString>";
 
 const std::string PROFILE = std::string("<?xml version=\"1.0\"?>\n") +
-                            std::string("<MBNProfileExt xmlns=\"http://www.microsoft.com/networking/WWAN/profile/v4\">\n") +
-                            std::string("	<Name></Name>\n") +
-                            std::string("	<IsDefault>true</IsDefault>\n") +
-                            std::string("	<ProfileCreationType>UserProvisioned</ProfileCreationType>\n") +
-                            std::string("	<SubscriberID></SubscriberID>\n") +
-                            std::string("	<SimIccID></SimIccID>\n") +
-                            std::string("	<HomeProviderName></HomeProviderName>\n") +
-                            std::string("	<ConnectionMode>auto</ConnectionMode>\n") +
-                            std::string("	<Context>\n") +
-                            std::string("		<AccessString></AccessString>\n") +
-                            std::string("		<Compression>DISABLE</Compression>\n") +
-                            std::string("		<AuthProtocol>NONE</AuthProtocol>\n") +
-                            std::string("	</Context>\n") +
-                            std::string("	<PurposeGroups>\n") +
-                            std::string("		<PurposeGroupGuid>{3E5545D2-1137-4DC8-A198-33F1C657515F}</PurposeGroupGuid>\n") +
-                            std::string("	</PurposeGroups>\n") +
-                            std::string("	<AdminEnable>true</AdminEnable>\n") +
-                            std::string("	<AdminRoamControl>AllRoamAllowed</AdminRoamControl>\n") +
-                            std::string("	<IsExclusiveToOther>true</IsExclusiveToOther>\n") +
-                            std::string("</MBNProfileExt>");
+std::string("<MBNProfileExt xmlns=\"http://www.microsoft.com/networking/WWAN/profile/v4\">\n") +
+std::string("	<Name></Name>\n") +
+std::string("	<IsDefault>true</IsDefault>\n") +
+std::string("	<ProfileCreationType>UserProvisioned</ProfileCreationType>\n") +
+std::string("	<SubscriberID></SubscriberID>\n") +
+std::string("	<SimIccID></SimIccID>\n") +
+std::string("	<HomeProviderName></HomeProviderName>\n") +
+std::string("	<ConnectionMode>auto</ConnectionMode>\n") +
+std::string("	<Context>\n") +
+std::string("		<AccessString></AccessString>\n") +
+std::string("		<Compression>DISABLE</Compression>\n") +
+std::string("		<AuthProtocol>NONE</AuthProtocol>\n") +
+std::string("	</Context>\n") +
+std::string("	<PurposeGroups>\n") +
+std::string("		<PurposeGroupGuid>{3E5545D2-1137-4DC8-A198-33F1C657515F}</PurposeGroupGuid>\n") +
+std::string("	</PurposeGroups>\n") +
+std::string("	<AdminEnable>true</AdminEnable>\n") +
+std::string("	<AdminRoamControl>AllRoamAllowed</AdminRoamControl>\n") +
+std::string("	<IsExclusiveToOther>true</IsExclusiveToOther>\n") +
+std::string("</MBNProfileExt>");
 
 std::string Execute(const char* cmd)
 {
@@ -91,9 +91,9 @@ std::string CreateGuidString()
     char c[37];
 
     sprintf_s(c, "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
-              guid.Data1, guid.Data2, guid.Data3,
-              guid.Data4[0], guid.Data4[1], guid.Data4[2], guid.Data4[3],
-              guid.Data4[4], guid.Data4[5], guid.Data4[6], guid.Data4[7]);
+        guid.Data1, guid.Data2, guid.Data3,
+        guid.Data4[0], guid.Data4[1], guid.Data4[2], guid.Data4[3],
+        guid.Data4[4], guid.Data4[5], guid.Data4[6], guid.Data4[7]);
 
     std::string s(c);
 
@@ -119,21 +119,21 @@ int main(int argc, char **argv)
     std::string subscriberId = Execute("netsh mbn show ready *");
     std::string simIccId = subscriberId;
 
-	std::smatch match;
+    std::smatch match;
 
-	if (!std::regex_search(subscriberId, match, SUBSCRIBER_ID))
+    if (!std::regex_search(subscriberId, match, SUBSCRIBER_ID))
     {
-		std::cout << "Cannot find Subscriber Id" << std::endl;
-		return 1;
-	}
+        std::cout << "Cannot find Subscriber Id" << std::endl;
+        return 1;
+    }
     else
     {
-		std::size_t begin = match.position() + match.length();
-		std::size_t end = subscriberId.find("\n", begin);
-		subscriberId = subscriberId.substr(begin, end - begin);
+        std::size_t begin = match.position() + match.length();
+        std::size_t end = subscriberId.find("\n", begin);
+        subscriberId = subscriberId.substr(begin, end - begin);
 
-		std::cout << "Subscriber Id: " << subscriberId << std::endl;
-	}
+        std::cout << "Subscriber Id: " << subscriberId << std::endl;
+    }
 
     if (!std::regex_search(simIccId, match, SIM_ICC_ID))
     {
@@ -142,15 +142,15 @@ int main(int argc, char **argv)
     }
     else
     {
-		std::size_t begin = match.position() + match.length();
-		std::size_t end = simIccId.find("\n", begin);
+        std::size_t begin = match.position() + match.length();
+        std::size_t end = simIccId.find("\n", begin);
         simIccId = simIccId.substr(begin, end - begin);
 
         std::cout << "SIM ICC Id: " << simIccId << std::endl;
     }
 
     std::string interfaceName = Execute("netsh mbn show interfaces *");
-	std::cout << interfaceName << std::endl;
+    std::cout << interfaceName << std::endl;
 
     if (!std::regex_search(interfaceName, match, INTERFACE_NAME))
     {
@@ -159,8 +159,8 @@ int main(int argc, char **argv)
     }
     else
     {
-		std::size_t begin = match.position() + match.length();
-		std::size_t end = interfaceName.find("\n", begin);
+        std::size_t begin = match.position() + match.length();
+        std::size_t end = interfaceName.find("\n", begin);
         interfaceName = interfaceName.substr(begin, end - begin);
 
         std::cout << "Interface Name: " << interfaceName << std::endl;
@@ -175,8 +175,8 @@ int main(int argc, char **argv)
     }
     else
     {
-		std::size_t begin = match.position() + match.length();
-		std::size_t end = homeProviderName.find("\n", begin);
+        std::size_t begin = match.position() + match.length();
+        std::size_t end = homeProviderName.find("\n", begin);
         homeProviderName = homeProviderName.substr(begin, end - begin);
 
         std::cout << "Home Provider Name: " << homeProviderName << std::endl;
@@ -197,35 +197,35 @@ int main(int argc, char **argv)
 
     std::string addProfile = Execute((std::string("netsh mbn add profile interface=\"") + interfaceName + std::string("\" name=\"") + PROFILE_FILENAME + std::string("\"")).c_str());
 
-    std::cout << "netsh mbn add profile: " ;
+    std::cout << "netsh mbn add profile: ";
 
     if (addProfile != "\n")
     {
-		std::cout << "Fail!" << std::endl;
-		std::cout << addProfile << std::endl;
+        std::cout << "Fail!" << std::endl;
+        std::cout << addProfile << std::endl;
         return 1;
     }
 
-	std::cout << "Done!" << std::endl;
+    std::cout << "Done!" << std::endl;
 
     std::string connect = Execute((std::string("netsh mbn connect interface=\"") + interfaceName + std::string("\" connmode=name name=\"") + nameGuid + std::string("\"")));
 
-    std::cout << "netsh mbn connect: " ;
+    std::cout << "netsh mbn connect: ";
 
     if (connect != "\n")
     {
-		std::cout << "Fail!" << std::endl;
-		std::cout << connect << std::endl;
+        std::cout << "Fail!" << std::endl;
+        std::cout << connect << std::endl;
         return 1;
-	}
-	else {
-		std::cout << "Done!" << std::endl;
-		std::cout << connect << std::endl;
-	}
-	// Wait for Connection building.
-	Sleep(1000);
+    }
+    else {
+        std::cout << "Done!" << std::endl;
+        std::cout << connect << std::endl;
+    }
+    // Wait for Connection building.
+    Sleep(1000);
 
-	interfaceName = Execute("netsh mbn show interfaces *");
-	std::cout << interfaceName << std::endl;
+    interfaceName = Execute("netsh mbn show interfaces *");
+    std::cout << interfaceName << std::endl;
     return 0;
 }
