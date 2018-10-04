@@ -1,7 +1,6 @@
-Windows 10 IoT Utilities
-==============
+# Windows 10 IoT Utilities
 
-##Welcome to the Windows 10 IoT Core Utilities
+## Welcome to the Windows 10 IoT Core Utilities
 
 Please download, build, use, and contribute!!  For more information and descriptions about the utilities found here, see:
 
